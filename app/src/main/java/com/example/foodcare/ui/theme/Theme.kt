@@ -52,7 +52,7 @@ fun FoodCareTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
+        typography = GuidyTypography,
         content = content
     )
 }
