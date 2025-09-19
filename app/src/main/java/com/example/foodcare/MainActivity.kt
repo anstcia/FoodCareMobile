@@ -21,8 +21,8 @@ class MainActivity : ComponentActivity() {
 
                 if (isLoggedIn) {
                     HomeScreen(
-                        onScanClick = { /* TODO */ },
-                        onProfileClick = { /* TODO */ }
+                        onScanClick = {},
+                        onProfileClick = { }
                     )
                 } else {
                     LoginScreen(
