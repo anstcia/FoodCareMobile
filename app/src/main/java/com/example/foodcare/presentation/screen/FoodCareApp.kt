@@ -1,0 +1,57 @@
+package com.example.foodcare.presentation.screen
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.example.foodcare.navigation.Screen
+
+@Composable
+fun FoodCareApp() {
+    val navController = rememberNavController()
+
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                val currentBackStack by navController.currentBackStackEntryAsState()
+                val currentDestination = currentBackStack?.destination?.route
+
+                listOf(Screen.Home, Screen.Fridge).forEach { screen ->
+                    NavigationBarItem(
+                        selected = currentDestination == screen.route,
+                        onClick = { navController.navigate(screen.route) },
+                        icon = {
+                            Icon(
+                                painter = painterResource(screen.icon),
+                                contentDescription = screen.title
+                            )
+                        },
+                        label = { Text(screen.title) }
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Home.route,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Screen.Home.route) { HomeScreen(
+                onScanClick = { /* ... */ },
+                onFridgeClick = { navController.navigate(Screen.Fridge.route) }
+            ) }
+            composable(Screen.Fridge.route) { FridgeScreen() }
+        }
+    }
+}

@@ -34,7 +34,7 @@ val Typography = Typography(
     */
 )
 val Guidy = FontFamily(
-    Font(R.font.guidy)
+    Font(R.font.liberationsans)
 )
 val GuidyTypography = Typography(
     displayLarge = TextStyle(

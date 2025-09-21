@@ -8,6 +8,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import com.example.foodcare.presentation.screen.HomeScreen
 import com.example.foodcare.ui.theme.FoodCareTheme
 import androidx.compose.runtime.*
+import com.example.foodcare.presentation.screen.FoodCareApp
 import com.example.foodcare.presentation.screen.LoginScreen
 
 class MainActivity : ComponentActivity() {
@@ -20,10 +21,7 @@ class MainActivity : ComponentActivity() {
                 var isLoggedIn by remember { mutableStateOf(false) }
 
                 if (isLoggedIn) {
-                    HomeScreen(
-                        onScanClick = {},
-                        onProfileClick = { }
-                    )
+                    FoodCareApp()
                 } else {
                     LoginScreen(
                         onLogin = { email, password ->
