@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,7 +60,15 @@ fun LoginScreen(
 
             Text(
                 text = "FoodCare",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF2E8B57),
+                            Color(0xFF5A83DD)
+                        )
+                    ),
+                ),
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 32.dp)
             )
 
@@ -80,7 +89,8 @@ fun LoginScreen(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -113,7 +123,8 @@ fun LoginScreen(
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done
                 ),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -133,7 +144,7 @@ fun LoginScreen(
                 onClick = { onLogin(email.trim(), password) },
                 enabled = canLogin,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (canLogin) Color.Black else Color.Black,
+                    containerColor = if (canLogin) Color(0xFF5A83DD) else Color.Gray,
                     contentColor = Color.White
                 ),
                 modifier = Modifier
@@ -141,7 +152,7 @@ fun LoginScreen(
                     .height(48.dp)
             ) {
                 Text("Войти",
-                    style = MaterialTheme.typography.bodyLarge)
+                    style = MaterialTheme.typography.bodyLarge,)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
