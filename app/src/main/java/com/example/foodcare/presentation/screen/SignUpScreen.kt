@@ -1,5 +1,4 @@
 package com.example.foodcare.presentation.screen
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -14,12 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import com.example.foodcare.R
 
 @Composable
@@ -27,8 +27,7 @@ fun SignUpScreen(
     modifier: Modifier = Modifier,
     onSignUp: (email: String, password: String) -> Unit = { _, _ -> },
     onLoginClick: () -> Unit = {},
-
-){
+) {
     var email by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
@@ -38,16 +37,22 @@ fun SignUpScreen(
 
     val canLogin = email.isNotBlank() && password.length >= 4
 
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
+    val screenWidth = configuration.screenWidthDp.dp
+
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(Color.White),
+        contentAlignment = Alignment.TopCenter
     ) {
         Box(
             modifier = Modifier
-                .size(width = 398.dp, height = 887.dp)
+                .fillMaxWidth(0.95f)
+                .height(screenHeight * 0.95f)
                 .align(Alignment.TopCenter)
-                .padding(top = 155.dp)
+                .padding(top = screenHeight * 0.05f)
                 .shadow(elevation = 8.dp, shape = RoundedCornerShape(32.dp))
                 .background(Color.White, shape = RoundedCornerShape(32.dp))
                 .border(width = 1.dp, color = Color(0xFFC4C4C4), shape = RoundedCornerShape(32.dp))
@@ -55,7 +60,7 @@ fun SignUpScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(32.dp),
+                    .padding(horizontal = screenWidth * 0.07f, vertical = screenHeight * 0.03f),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -71,17 +76,24 @@ fun SignUpScreen(
                         ),
                     ),
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 32.dp)
+                    fontSize = (screenWidth.value * 0.08).sp,
+                    modifier = Modifier.padding(bottom = screenHeight * 0.04f)
                 )
 
-                Text(
-                    text = "Введите почтовый адрес",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp),
-                    textAlign = TextAlign.Start
-                )
+                @Composable
+                fun labelText(text: String) {
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 4.dp),
+                        textAlign = TextAlign.Start
+                    )
+                }
+
+
+                labelText("Введите почтовый адрес")
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
@@ -93,19 +105,11 @@ fun SignUpScreen(
                     ),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
-
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
-                Text(
-                    text = "Введите имя",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp),
-                    textAlign = TextAlign.Start
-                )
+                labelText("Введите имя")
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -119,16 +123,9 @@ fun SignUpScreen(
                     shape = RoundedCornerShape(16.dp)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
-                Text(
-                    text = "Введите пароль",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp),
-                    textAlign = TextAlign.Start
-                )
+                labelText("Введите пароль")
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
@@ -154,15 +151,9 @@ fun SignUpScreen(
                     shape = RoundedCornerShape(16.dp)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Повторите пароль",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 4.dp),
-                    textAlign = TextAlign.Start
-                )
+                Spacer(modifier = Modifier.height(screenHeight * 0.02f))
+
+                labelText("Повторите пароль")
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
@@ -188,7 +179,7 @@ fun SignUpScreen(
                     shape = RoundedCornerShape(16.dp)
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(screenHeight * 0.03f))
 
                 Button(
                     onClick = { onSignUp(email.trim(), password) },
@@ -199,13 +190,15 @@ fun SignUpScreen(
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
+                        .height(screenHeight * 0.06f)
                 ) {
-                    Text("Зарегистрироваться",
-                        style = MaterialTheme.typography.bodyLarge,)
+                    Text(
+                        "Зарегистрироваться",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -221,13 +214,5 @@ fun SignUpScreen(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun SignUpScreenPreview() {
-    MaterialTheme {
-        SignUpScreen()
     }
 }
