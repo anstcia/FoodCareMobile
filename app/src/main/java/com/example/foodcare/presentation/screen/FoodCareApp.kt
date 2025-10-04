@@ -48,9 +48,20 @@ fun FoodCareApp() {
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Home.route) { HomeScreen(
-                onScanClick = { /* ... */ },
+                onScanClick = { navController.navigate("barcode")},
                 onFridgeClick = { navController.navigate(Screen.Fridge.route) }
             ) }
+            composable("barcode") {
+                BarcodeScannerScreen(
+                    onBarcodeScanned = { code ->
+                        println("Отсканировано: $code")
+                        navController.popBackStack()
+                    },
+                    onBack = {
+                        navController.popBackStack()
+                    }
+                )
+            }
             composable(Screen.Fridge.route) { FridgeScreen() }
         }
     }
