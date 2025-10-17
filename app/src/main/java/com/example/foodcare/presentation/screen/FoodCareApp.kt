@@ -1,5 +1,7 @@
 package com.example.foodcare.presentation.screen
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -16,6 +18,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.foodcare.navigation.Screen
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FoodCareApp() {
     val navController = rememberNavController()
@@ -49,7 +52,8 @@ fun FoodCareApp() {
         ) {
             composable(Screen.Home.route) { HomeScreen(
                 onScanClick = { navController.navigate("barcode")},
-                onFridgeClick = { navController.navigate(Screen.Fridge.route) }
+                onFridgeClick = { navController.navigate(Screen.Fridge.route) },
+                onCalendarClick = { navController.navigate("expiration_date") }
             ) }
             composable("barcode") {
                 BarcodeScannerScreen(
@@ -63,6 +67,10 @@ fun FoodCareApp() {
                 )
             }
             composable(Screen.Fridge.route) { FridgeScreen() }
+
+            composable(Screen.ExpirationDate.route) {
+                ExpirationDateScreen()
+            }
         }
     }
 }

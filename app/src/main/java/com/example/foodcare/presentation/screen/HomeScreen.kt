@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,7 +45,8 @@ import com.example.foodcare.ui.theme.FoodCareTheme
 @Composable
 fun HomeScreen(
     onScanClick: () -> Unit,
-    onFridgeClick: () -> Unit
+    onFridgeClick: () -> Unit,
+    onCalendarClick: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -89,31 +91,35 @@ fun HomeScreen(
                 ActionCard(
                     title = "Сканировать продукт",
                     icon = R.drawable.ic_frame_inspect,
-                    backgroundColor = Color(0xFF2E8B57),
+                    backgroundIconColor = Color(0xFF2E8B57),
                     onClick = onScanClick,
-                    modifier = Modifier
-                        .weight(1f)
+                    modifier = Modifier.weight(1f)
                 )
                 FridgeCard(
                     count = 12,
                     icon = R.drawable.ic_frame_inspect,
-                    backgroundColor = Color(0xFF5A83DD),
+                    backgroundIconColor = Color(0xFF5A83DD),
                     onClick = onFridgeClick,
-                    modifier = Modifier
-                        .weight(1f),
+                    modifier = Modifier.weight(1f),
                 )
             }
-
 
             // скоро испортится
             ElevatedCard(
                 elevation = CardDefaults.cardElevation(4.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .padding(12.dp)
+                    .padding(horizontal = 12.dp)
+                    .height(200.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
+                )
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(
+                    modifier = Modifier
+                        .padding(12.dp)
+                        .fillMaxSize()
+                ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_shedule),
@@ -128,20 +134,49 @@ fun HomeScreen(
                             fontWeight = FontWeight.Bold
                         )
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     LazyColumn {
                         // TODO: список продуктов
                     }
+                }
+            }
+
+            // ➕ Кнопка перехода к календарю
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.material3.Button(
+                    onClick = onCalendarClick,
+                    modifier = Modifier
+                        .height(36.dp)
+                        .width(140.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF5A83DD)
+                    ),
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text(
+                        text = "Календарь",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            color = Color.White
+                        )
+                    )
                 }
             }
         }
     }
 }
 
+
 @Composable
 private fun ActionCard(
     title: String,
     @DrawableRes icon: Int,
-    backgroundColor: Color,
+    backgroundIconColor: Color,
     onClick: () -> Unit,
     modifier: Modifier
 ) {
@@ -150,6 +185,9 @@ private fun ActionCard(
             .height(200.dp)
             .padding(12.dp)
             .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
@@ -161,7 +199,7 @@ private fun ActionCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(backgroundColor),
+                    .background(backgroundIconColor),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -186,7 +224,7 @@ private fun ActionCard(
 private fun FridgeCard(
     count: Int,
     @DrawableRes icon: Int,
-    backgroundColor: Color,
+    backgroundIconColor: Color,
     onClick: () -> Unit,
     modifier: Modifier,
 ) {
@@ -195,6 +233,9 @@ private fun FridgeCard(
             .height(200.dp)
             .padding(12.dp)
             .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
         elevation = CardDefaults.cardElevation(6.dp)
     ) {
         Column(
@@ -206,7 +247,7 @@ private fun FridgeCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(backgroundColor),
+                    .background(backgroundIconColor),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -238,7 +279,9 @@ fun HomeScreenPreview() {
     FoodCareTheme {
         HomeScreen(
             onScanClick = {},
-            onFridgeClick = {}
+            onFridgeClick = {},
+            onCalendarClick = {}
+
         )
     }
 }
