@@ -1,31 +1,27 @@
 package com.example.foodcare.presentation.screen
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.widget.NumberPicker
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,12 +38,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.example.foodcare.ui.theme.FoodCareTheme
 import java.time.Instant
 import java.time.LocalDate
@@ -55,7 +53,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 
-@RequiresApi(Build.VERSION_CODES.O)
+@SuppressLint("ConfigurationScreenWidthHeight")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpirationDateScreen() {
@@ -65,6 +63,59 @@ fun ExpirationDateScreen() {
     var selectedDate: LocalDate? by remember { mutableStateOf<LocalDate?>(null) }
     var showOldPicker by remember { mutableStateOf(false) }
 
+    if (showDialog) {
+        val configuration = LocalConfiguration.current
+        val dialogWidth = when (configuration.screenWidthDp) {
+            in 0..400 -> Modifier.fillMaxWidth(0.95f)
+            in 401..600 -> Modifier.fillMaxWidth(0.85f)
+            else -> Modifier.fillMaxWidth(0.75f)
+        }
+
+        Dialog(
+            onDismissRequest = { showDialog = false },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                modifier = dialogWidth
+                    .wrapContentHeight()
+            ) {
+                Column {
+
+                    DatePicker(
+                        state = datePickerState,
+                        showModeToggle = true,
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                    )
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = { showDialog = false }) {
+                            Text("Назад")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(
+                            onClick = {
+                                val millis = datePickerState.selectedDateMillis
+                                if (millis != null) {
+                                    selectedDate = Instant.ofEpochMilli(millis)
+                                        .atZone(ZoneId.systemDefault())
+                                        .toLocalDate()
+                                }
+                                showDialog = false
+                            }
+                        ) {
+                            Text("Ок")
+                        }
+                    }
+                }
+            }
+        }
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -84,17 +135,14 @@ fun ExpirationDateScreen() {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
-
             Button(
                 onClick = { showDialog = true },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Открыть календарь")
+                Text("Выбрать дату")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-
 
             selectedDate?.let {
                 Text(
@@ -106,54 +154,18 @@ fun ExpirationDateScreen() {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // кнопка для первого пикера
             Button(
                 onClick = { showOldPicker = !showOldPicker },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7B90E6))
             ) {
                 Text(if (showOldPicker) "Скрыть дополнительную дату" else "Добавить дату")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // второй  DatePicker
             if (showOldPicker) {
                 WheelDatePicker()
-            }
-        }
-
-        if (showDialog) {
-            DatePickerDialog(
-                onDismissRequest = { showDialog = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        val millis = datePickerState.selectedDateMillis
-                        if (millis != null) {
-                            selectedDate = Instant.ofEpochMilli(millis)
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                        }
-                        showDialog = false
-                    }) {
-                        Text("OK")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDialog = false }) {
-                        Text("Cancel")
-                    }
-                }
-            ) {
-                DatePicker(
-                    state = datePickerState,
-                    showModeToggle = true, // переключатель между месяцем и текстовым вводом
-                    modifier = Modifier
-                        .background(
-                            color = MaterialTheme.colorScheme.surface,
-                        )
-                        .padding(8.dp)
-                )
             }
         }
     }
@@ -163,8 +175,8 @@ fun ExpirationDateScreen() {
 fun WheelDatePicker() {
     val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
     var selectedMonth by remember { mutableStateOf(10) }
-    var selectedDay by remember { mutableStateOf(9) }
-    var selectedYear by remember { mutableStateOf(2019) }
+    var selectedDay by remember { mutableStateOf(18) }
+    var selectedYear by remember { mutableStateOf(2025) }
 
     Card(
         modifier = Modifier
@@ -177,7 +189,7 @@ fun WheelDatePicker() {
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(16.dp)
         ) {
-            Text("Выберите дату", style = MaterialTheme.typography.titleLarge)
+            Text("Выберите дату", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(8.dp))
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -204,8 +216,8 @@ fun WheelDatePicker() {
                 Spacer(modifier = Modifier.width(8.dp))
                 AndroidView(factory = {
                     NumberPicker(it).apply {
-                        minValue = 2018
-                        maxValue = 2025
+                        minValue = 2025
+                        maxValue = 2027
                         value = selectedYear
                         setOnValueChangedListener { _, _, newVal -> selectedYear = newVal }
                     }
@@ -217,14 +229,14 @@ fun WheelDatePicker() {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                TextButton(onClick = { /* отмена */ }) { Text("CANCEL", color = Color(0xFFE91E63)) }
-                TextButton(onClick = { /* подтверждение */ }) { Text("OK", color = Color( 0xFF2E8B57)) }
+                TextButton(onClick = { /* подтверждение */ }) { Text("Добавить", color = Color(0xFF2E8B57)) }
+                TextButton(onClick = { /* отмена */ }) { Text("Назад", color = Color(0xFFE91E63)) }
+
             }
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Preview(showBackground = true)
 @Composable
 fun ExpirationDateScreenPreview() {
