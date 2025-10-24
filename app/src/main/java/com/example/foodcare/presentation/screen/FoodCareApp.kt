@@ -1,7 +1,5 @@
 package com.example.foodcare.presentation.screen
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -70,10 +68,15 @@ fun FoodCareApp() {
                     }
                 )
             }
-            composable(Screen.Fridge.route) { FridgeScreen() }
+            composable(Screen.Fridge.route) { FridgeScreen(
+                onBackClick = { navController.popBackStack() }
+            ) }
 
             composable(Screen.ExpirationDate.route) {
-                ExpirationDateScreen()
+                ExpirationDateScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateToFridge = {navController.navigate(Screen.Fridge.route)}
+                )
             }
         }
     }
