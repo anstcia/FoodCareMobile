@@ -94,7 +94,7 @@ fun HomeScreen(
                 InfoCard(
                     title = "Холодильник",
                     subtitle = "12 продуктов",
-                    icon = R.drawable.ic_frame_inspect,
+                    icon = R.drawable.ic_kitchen,
                     backgroundIconColor = Color(0xFF5A83DD),
                     onClick = onFridgeClick,
                     modifier = Modifier.weight(1f)
@@ -140,13 +140,11 @@ fun HomeScreen(
 
             Button(
                 onClick = onCalendarClick,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5A83DD)),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF4F5F6)),
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .width(160.dp)
-                    .height(40.dp)
+                    .align(Alignment.Start)
+                    .width(100.dp)
             ) {
-                Text("Календарь", color = Color.White)
             }
         }
     }
@@ -226,6 +224,8 @@ fun ProductItemExpires(product: Product) {
                     shape = RoundedCornerShape(50)
                 )
                 .padding(horizontal = 12.dp, vertical = 4.dp)
+                .width(40.dp)
+            , Alignment.Center
         ) {
             Text(
                 text = product.expiresIn,
