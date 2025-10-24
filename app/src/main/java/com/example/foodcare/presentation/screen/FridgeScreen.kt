@@ -36,8 +36,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,7 +58,7 @@ import com.example.foodcare.ui.theme.FoodCareTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FridgeScreen() {
+fun FridgeScreen(onBackClick: () -> Unit) {
     var searchText by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf<String?>(null) }
 
@@ -92,7 +90,6 @@ fun FridgeScreen() {
             expiresIn = "1 день",
         )
     )
-    val isCategorySelected = selectedFilter != null
 
     Scaffold(
         topBar = {
@@ -111,7 +108,7 @@ fun FridgeScreen() {
                 ) {
                     // кнопка назад
                     IconButton(
-                        onClick = { /* вернуться назад */ },
+                        onClick = { onBackClick },
                         modifier = Modifier.size(48.dp)
                     ) {
                         Icon(
@@ -348,7 +345,6 @@ fun ProductItem(product: Product) {
 @Composable
 fun FridgeScreenPreview() {
     FoodCareTheme {
-        FridgeScreen(
-        )
+        FridgeScreen({ })
     }
 }
