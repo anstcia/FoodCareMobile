@@ -32,9 +32,6 @@ class MainActivity : ComponentActivity() {
 
                     "signup" -> {
                         SignUpScreen(
-                            onSignUp = { email, password ->
-                                currentScreen = "login"
-                            },
                             onLoginClick = {
                                 currentScreen = "login"
                             }                        )
