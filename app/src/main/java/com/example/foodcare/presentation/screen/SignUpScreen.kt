@@ -1,10 +1,13 @@
 package com.example.foodcare.presentation.screen
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -20,13 +23,16 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.foodcare.R
+import com.example.foodcare.presentation.viewmodel.AuthState
+import com.example.foodcare.presentation.viewmodel.AuthViewModel
 
 @Composable
 fun SignUpScreen(
     modifier: Modifier = Modifier,
-    onSignUp: (email: String, password: String) -> Unit = { _, _ -> },
     onLoginClick: () -> Unit = {},
+    viewModel: AuthViewModel = viewModel(),
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
@@ -35,7 +41,9 @@ fun SignUpScreen(
     var confirmPassword by rememberSaveable { mutableStateOf("") }
     var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
-    val canLogin = email.isNotBlank() && password.length >= 4
+    val registerState by viewModel.registerState.collectAsState(initial = AuthState.Idle)
+    val passwordsMatch = password == confirmPassword
+    val canRegister = email.isNotBlank() && password.length >= 4 && confirmPassword.isNotBlank() && passwordsMatch
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
@@ -60,11 +68,13 @@ fun SignUpScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = screenWidth * 0.07f, vertical = screenHeight * 0.03f),
-                verticalArrangement = Arrangement.Center,
+                    .padding(horizontal = screenWidth * 0.07f, vertical = screenHeight * 0.03f)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
+                // Заголовок
                 Text(
                     text = "FoodCare",
                     style = MaterialTheme.typography.headlineMedium.copy(
@@ -80,6 +90,7 @@ fun SignUpScreen(
                     modifier = Modifier.padding(bottom = screenHeight * 0.04f)
                 )
 
+                // Вспомогательная функция для меток
                 @Composable
                 fun labelText(text: String) {
                     Text(
@@ -92,7 +103,7 @@ fun SignUpScreen(
                     )
                 }
 
-
+                // Email
                 labelText("Введите почтовый адрес")
                 OutlinedTextField(
                     value = email,
@@ -109,6 +120,7 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
+                // Имя
                 labelText("Введите имя")
                 OutlinedTextField(
                     value = name,
@@ -125,6 +137,7 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
+                // Пароль
                 labelText("Введите пароль")
                 OutlinedTextField(
                     value = password,
@@ -141,11 +154,10 @@ fun SignUpScreen(
                                 contentDescription = if (passwordVisible) "Скрыть пароль" else "Показать пароль"
                             )
                         }
-
                     },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
+                        imeAction = ImeAction.Next
                     ),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
@@ -153,6 +165,7 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
+                // Повтор пароля
                 labelText("Повторите пароль")
                 OutlinedTextField(
                     value = confirmPassword,
@@ -169,7 +182,6 @@ fun SignUpScreen(
                                 contentDescription = if (confirmPasswordVisible) "Скрыть пароль" else "Показать пароль"
                             )
                         }
-
                     },
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
@@ -179,27 +191,52 @@ fun SignUpScreen(
                     shape = RoundedCornerShape(16.dp)
                 )
 
+                if (!passwordsMatch && confirmPassword.isNotEmpty()) {
+                    Text(
+                        text = "Пароли не совпадают",
+                        color = Color.Red,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(screenHeight * 0.03f))
 
+                // Кнопка регистрации
                 Button(
-                    onClick = { onSignUp(email.trim(), password) },
-                    enabled = canLogin,
+                    onClick = { viewModel.register(email.trim(), name.trim(), password, confirmPassword) },
+                    enabled = canRegister,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (canLogin) Color(0xFF5A83DD) else Color.Gray,
+                        containerColor = if (canRegister) Color(0xFF5A83DD) else Color.Gray,
                         contentColor = Color.White
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(screenHeight * 0.06f)
                 ) {
-                    Text(
-                        "Зарегистрироваться",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
+                    Text("Зарегистрироваться", style = MaterialTheme.typography.bodyLarge)
                 }
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
+                // Состояние регистрации
+                when (registerState) {
+                    is AuthState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(8.dp))
+                    is AuthState.Success -> Text(
+                        text = (registerState as AuthState.Success).message,
+                        color = Color(0xFF2E8B57),
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    is AuthState.Error -> Text(
+                        text = (registerState as AuthState.Error).message,
+                        color = Color.Red,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                    else -> {}
+                }
+
+                Spacer(modifier = Modifier.height(screenHeight * 0.03f))
+
+                // Ссылка на вход
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier.fillMaxWidth()
