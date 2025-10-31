@@ -55,7 +55,7 @@ fun FoodCareApp() {
             composable(Screen.Home.route) { HomeScreen(
                 onScanClick = { navController.navigate("barcode")},
                 onFridgeClick = { navController.navigate(Screen.Fridge.route) },
-                onCalendarClick = { navController.navigate("expiration_date") }
+                onCalendarClick = { navController.navigate(Screen.ExpirationDate.route) }
             ) }
             composable("barcode") {
                 BarcodeScannerScreen(

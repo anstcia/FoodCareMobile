@@ -1,5 +1,6 @@
 package com.example.foodcare.presentation.screen
 
+import android.annotation.SuppressLint
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,124 +33,112 @@ fun HomeScreen(
     onCalendarClick: () -> Unit
 ) {
     val sampleProducts = listOf(
-        Product("Молоко", "Молочные",
-            "19-09-2025",
-            "1 день",
-            R.drawable.milk),
-        Product("Творог", "Молочные",
-            "22-09-2025",
-            "2 дня",
-            R.drawable.apple)
+        Product("Молоко Простоквашино", "Молочные", "19-09-2025", "2 дня", R.drawable.milk),
+        Product("Курица Петелинка", "Мясо", "22-09-2025", "1 день", R.drawable.chicken),
+        Product("Батончик Twix", "Конфеты", "20-09-2025", "1 день", R.drawable.twix)
     )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = "FoodCare",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                brush = Brush.linearGradient(
-                                    colors = listOf(
-                                        Color(0xFF2E8B57),
-                                        Color(0xFF5A83DD)
-                                    )
-                                ),
-                            ),
-                        )
-                        Text(
-                            text = "Управляйте своими продуктами",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
-                )
-            )
-        }
-    ) { innerPadding ->
-
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF4F5F6)),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Top bar
         Column(
             modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .background(Color(0xFFF4F5F6))
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(vertical = 8.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                InfoCard(
-                    title = "Сканировать продукт",
-                    subtitle = null,
-                    icon = R.drawable.ic_frame_inspect,
-                    backgroundIconColor = Color(0xFF2E8B57),
-                    onClick = onScanClick,
-                    modifier = Modifier.weight(1f)
-                )
-                InfoCard(
-                    title = "Холодильник",
-                    subtitle = "12 продуктов",
-                    icon = R.drawable.ic_kitchen,
-                    backgroundIconColor = Color(0xFF5A83DD),
-                    onClick = onFridgeClick,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            Text(
+                text = "FoodCare",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    brush = Brush.linearGradient(
+                        colors = listOf(Color(0xFF2E8B57), Color(0xFF5A83DD))
+                    )
+                ),
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+            Text(
+                text = "Управляйте своими продуктами",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+        }
 
-            ElevatedCard(
-                elevation = CardDefaults.cardElevation(4.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                modifier = Modifier.fillMaxWidth()
+        // Кнопки
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            InfoCard(
+                title = "Сканировать продукт",
+                icon = R.drawable.ic_frame_inspect,
+                backgroundIconColor = Color(0xFF2E8B57),
+                onClick = onScanClick,
+                modifier = Modifier.weight(1f)
+            )
+            InfoCard(
+                title = "Холодильник",
+                subtitle = "7 продуктов",
+                icon = R.drawable.ic_kitchen,
+                backgroundIconColor = Color(0xFF5A83DD),
+                onClick = onFridgeClick,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
+        // блок "Скоро испортится"
+        ElevatedCard(
+            elevation = CardDefaults.cardElevation(4.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_shedule),
+                        contentDescription = null,
+                        tint = Color(0xFFFFD350),
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Скоро испортится",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                    )
+                }
+
+                LazyColumn(
+                    contentPadding = PaddingValues(vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.heightIn(max = 180.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_shedule),
-                            contentDescription = null,
-                            tint = Color(0xFFFFD350),
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            "Скоро испортится",
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold
-                            )
-                        )
-                    }
-
-                    LazyColumn(
-                        contentPadding = PaddingValues(vertical = 4.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.heightIn(max = 180.dp)
-                    ) {
-                        items(sampleProducts) { product ->
-                            ProductItemExpires(product)
-                        }
+                    items(sampleProducts) { product ->
+                        ProductItemExpires(product)
                     }
                 }
             }
+        }
 
-            Button(
-                onClick = onCalendarClick,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF4F5F6)),
-                modifier = Modifier
-                    .align(Alignment.Start)
-                    .width(100.dp)
-            ) {
-            }
+        // кнопка перехода к календарю
+        Button(
+            onClick = onCalendarClick,
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+            modifier = Modifier
+                .width(120.dp)
+                .align(Alignment.Start)
+        ) {
+            Text("Календарь", color =  Color.Transparent)
         }
     }
 }
 
+@SuppressLint("ModifierParameter")
 @Composable
 private fun InfoCard(
     title: String,
