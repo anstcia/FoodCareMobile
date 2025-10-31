@@ -39,16 +39,16 @@ class MainActivity : ComponentActivity() {
 
                     "login" -> {
                         LoginScreen(
-                            onLogin = { email, password ->
-                                if (email.isNotBlank() && password.isNotBlank()) {
-                                    isLoggedIn = true
-                                    currentScreen = "home"
-                                }
-                            },
                             onRegisterClick = { currentScreen = "signup" },
-                            onForgotPasswordClick = { println("Забыли пароль (заглушка)") }
+                            onForgotPasswordClick = { println("Забыли пароль (заглушка)") },
+                            onLoginSuccess = {
+                                isLoggedIn = true
+                                currentScreen = "home"
+                            }
                         )
                     }
+
+
 
                     "home" -> {
                         FoodCareApp()
