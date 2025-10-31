@@ -1,4 +1,5 @@
 package com.example.foodcare.presentation.viewmodel
+
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foodcare.api.LoginRequest
@@ -22,6 +23,9 @@ class AuthViewModel : ViewModel() {
     private val _registerState = MutableStateFlow<AuthState>(AuthState.Idle)
     val registerState: StateFlow<AuthState> = _registerState
 
+    private val _loginState = MutableStateFlow<AuthState>(AuthState.Idle)
+    val loginState: StateFlow<AuthState> = _loginState
+
 
     fun register(userLogin: String, userName: String, password: String, confirmPassword: String) {
 
@@ -34,7 +38,7 @@ class AuthViewModel : ViewModel() {
             _registerState.value = AuthState.Loading
             try {
                 val request = RegisterRequest(
-                    user_login = userLogin, // используем аргументы функции
+                    user_login = userLogin,
                     password = password,
                     user_name = userName
                 )
@@ -48,25 +52,29 @@ class AuthViewModel : ViewModel() {
 
 
     fun login(userLogin: String, password: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _error.value = null
+        if (userLogin.isBlank() || password.isBlank()) {
+            _loginState.value = AuthState.Error("Заполните все поля")
+            return
+        }
 
+        viewModelScope.launch {
+            _loginState.value = AuthState.Loading
             try {
-                val request = LoginRequest(user_login = userLogin, password = password)
-                val response = RetrofitClient.api.login(request)
-                _authResult.value = response.token ?: "Успешный вход"
+                val response = RetrofitClient.api.login(
+                    LoginRequest(user_login = userLogin, password = password)
+                )
+                _loginState.value = AuthState.Success(response.token ?: "Успешный вход")
             } catch (e: Exception) {
-                e.printStackTrace()
-                _error.value = "Ошибка входа: ${e.message}"
-            } finally {
-                _isLoading.value = false
+                _loginState.value = AuthState.Error("Ошибка входа: ${e.message}")
             }
         }
     }
 
-    fun resetState() {
-        _authResult.value = null
-        _error.value = null
+    fun resetLoginState() {
+        _loginState.value = AuthState.Idle
+    }
+
+    fun resetRegisterState() {
+        _registerState.value = AuthState.Idle
     }
 }
