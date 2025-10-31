@@ -74,7 +74,7 @@ fun SignUpScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                // Заголовок
+
                 Text(
                     text = "FoodCare",
                     style = MaterialTheme.typography.headlineMedium.copy(
@@ -90,7 +90,6 @@ fun SignUpScreen(
                     modifier = Modifier.padding(bottom = screenHeight * 0.04f)
                 )
 
-                // Вспомогательная функция для меток
                 @Composable
                 fun labelText(text: String) {
                     Text(
@@ -103,7 +102,6 @@ fun SignUpScreen(
                     )
                 }
 
-                // Email
                 labelText("Введите почтовый адрес")
                 OutlinedTextField(
                     value = email,
@@ -120,7 +118,6 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
-                // Имя
                 labelText("Введите имя")
                 OutlinedTextField(
                     value = name,
@@ -137,7 +134,6 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
-                // Пароль
                 labelText("Введите пароль")
                 OutlinedTextField(
                     value = password,
@@ -165,7 +161,6 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
-                // Повтор пароля
                 labelText("Повторите пароль")
                 OutlinedTextField(
                     value = confirmPassword,
@@ -201,7 +196,6 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.03f))
 
-                // Кнопка регистрации
                 Button(
                     onClick = { viewModel.register(email.trim(), name.trim(), password, confirmPassword) },
                     enabled = canRegister,
@@ -218,7 +212,6 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
-                // Состояние регистрации
                 when (registerState) {
                     is AuthState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(8.dp))
                     is AuthState.Success -> Text(
@@ -236,7 +229,7 @@ fun SignUpScreen(
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.03f))
 
-                // Ссылка на вход
+
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier.fillMaxWidth()

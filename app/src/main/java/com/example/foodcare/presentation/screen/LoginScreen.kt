@@ -16,18 +16,21 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.*
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.foodcare.R
-import androidx.compose.ui.tooling.preview.Preview
+import com.example.foodcare.presentation.viewmodel.AuthState
+import com.example.foodcare.presentation.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    onLogin: (email: String, password: String) -> Unit = { _, _ -> },
+    viewModel: AuthViewModel = viewModel(),
+    onLoginSuccess: () -> Unit = {},
     onRegisterClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {}
 ) {
@@ -35,11 +38,19 @@ fun LoginScreen(
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-    val canLogin = email.isNotBlank() && password.length >= 4
+    val loginState by viewModel.loginState.collectAsState()
+    val canLogin = email.isNotBlank() && password.length >= 6
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
     val screenWidth = configuration.screenWidthDp.dp
+
+    LaunchedEffect(loginState) {
+        if (loginState is AuthState.Success) {
+            onLoginSuccess()
+            viewModel.resetLoginState()
+        }
+    }
 
     Box(
         modifier = modifier
@@ -75,10 +86,10 @@ fun LoginScreen(
                             )
                         ),
                     ),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = (screenWidth.value * 0.08).sp,
-                    modifier = Modifier.padding(bottom = screenHeight * 0.04f)
+                    fontSize = (screenWidth.value * 0.08).sp
                 )
+
+                Spacer(modifier = Modifier.height(screenHeight * 0.03f))
 
                 @Composable
                 fun labelText(text: String) {
@@ -87,8 +98,7 @@ fun LoginScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 4.dp),
-                        textAlign = TextAlign.Start
+                            .padding(bottom = 4.dp)
                     )
                 }
 
@@ -98,10 +108,7 @@ fun LoginScreen(
                     onValueChange = { email = it },
                     label = { Text("Email") },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction = ImeAction.Next
-                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 )
@@ -118,17 +125,11 @@ fun LoginScreen(
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
-                                painter = painterResource(
-                                    id = if (passwordVisible) R.drawable.ic_hide_password else R.drawable.ic_show_password
-                                ),
+                                painter = painterResource(id = if (passwordVisible) R.drawable.ic_hide_password else R.drawable.ic_show_password),
                                 contentDescription = if (passwordVisible) "Скрыть пароль" else "Показать пароль"
                             )
                         }
                     },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction = ImeAction.Done
-                    ),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 )
@@ -147,7 +148,7 @@ fun LoginScreen(
                 Spacer(modifier = Modifier.height(screenHeight * 0.03f))
 
                 Button(
-                    onClick = { onLogin(email.trim(), password) },
+                    onClick = { viewModel.login(email.trim(), password) },
                     enabled = canLogin,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (canLogin) Color(0xFF5A83DD) else Color.Gray,
@@ -157,10 +158,25 @@ fun LoginScreen(
                         .fillMaxWidth()
                         .height(screenHeight * 0.06f)
                 ) {
-                    Text(
-                        "Войти",
-                        style = MaterialTheme.typography.bodyLarge,
+                    Text("Войти", style = MaterialTheme.typography.bodyLarge)
+                }
+
+                Spacer(modifier = Modifier.height(screenHeight * 0.02f))
+
+                when (loginState) {
+                    is AuthState.Loading -> CircularProgressIndicator()
+                    is AuthState.Success -> {
+                        Text(
+                            text = (loginState as AuthState.Success).message,
+                            color = Color.Green
+                        )
+                        LaunchedEffect(Unit) { onLoginSuccess() }
+                    }
+                    is AuthState.Error -> Text(
+                        text = (loginState as AuthState.Error).message,
+                        color = Color.Red
                     )
+                    else -> {}
                 }
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
@@ -179,13 +195,5 @@ fun LoginScreen(
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    MaterialTheme {
-        LoginScreen()
     }
 }
