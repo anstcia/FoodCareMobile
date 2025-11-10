@@ -31,7 +31,7 @@ fun FoodCareApp() {
                 val currentBackStack by navController.currentBackStackEntryAsState()
                 val currentDestination = currentBackStack?.destination?.route
 
-                listOf(Screen.Home, Screen.Fridge).forEach { screen ->
+                listOf(Screen.Home, Screen.Fridge, Screen.Recipe).forEach { screen ->
                     NavigationBarItem(
                         selected = currentDestination == screen.route,
                         onClick = { navController.navigate(screen.route) },
@@ -69,6 +69,10 @@ fun FoodCareApp() {
                 )
             }
             composable(Screen.Fridge.route) { FridgeScreen(
+                onBackClick = { navController.popBackStack() }
+            ) }
+
+            composable(Screen.Recipe.route) { RecipeScreen(
                 onBackClick = { navController.popBackStack() }
             ) }
 
