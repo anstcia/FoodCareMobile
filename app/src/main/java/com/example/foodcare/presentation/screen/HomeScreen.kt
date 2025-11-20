@@ -11,6 +11,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,8 +23,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodcare.R
-import com.example.foodcare.domain.entity.Product
+import com.example.foodcare.domain.entity.UserProduct
+import com.example.foodcare.presentation.viewmodel.ProductState
+import com.example.foodcare.presentation.viewmodel.ProductViewModel
 import com.example.foodcare.ui.theme.FoodCareTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -30,110 +35,119 @@ import com.example.foodcare.ui.theme.FoodCareTheme
 fun HomeScreen(
     onScanClick: () -> Unit,
     onFridgeClick: () -> Unit,
-    onCalendarClick: () -> Unit
+    onCalendarClick: () -> Unit,
+    viewModel: ProductViewModel = hiltViewModel()
 ) {
-    val sampleProducts = listOf(
-        Product("Молоко Простоквашино", "Молочные", "19-09-2025", "2 дня", R.drawable.milk),
-        Product("Курица Петелинка", "Мясо", "22-09-2025", "1 день", R.drawable.chicken),
-        Product("Батончик Twix", "Конфеты", "20-09-2025", "1 день", R.drawable.twix)
-    )
+    val state by viewModel.state.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF4F5F6)),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // Top bar
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.White)
-                .padding(vertical = 8.dp)
-        ) {
-            Text(
-                text = "FoodCare",
-                style = MaterialTheme.typography.titleLarge.copy(
-                    brush = Brush.linearGradient(
-                        colors = listOf(Color(0xFF2E8B57), Color(0xFF5A83DD))
-                    )
-                ),
-                modifier = Modifier.padding(horizontal = 12.dp)
-            )
-            Text(
-                text = "Управляйте своими продуктами",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 12.dp)
-            )
+    when(state){
+        is ProductState.Loading -> {
+            Text("Загрузка...")
         }
 
-        // Кнопки
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            InfoCard(
-                title = "Сканировать продукт",
-                icon = R.drawable.ic_frame_inspect,
-                backgroundIconColor = Color(0xFF2E8B57),
-                onClick = onScanClick,
-                modifier = Modifier.weight(1f)
-            )
-            InfoCard(
-                title = "Холодильник",
-                subtitle = "7 продуктов",
-                icon = R.drawable.ic_kitchen,
-                backgroundIconColor = Color(0xFF5A83DD),
-                onClick = onFridgeClick,
-                modifier = Modifier.weight(1f)
-            )
+        is ProductState.Error -> {
+            Text("Ошибка: ${(state as ProductState.Error).message}")
         }
-
-        // блок "Скоро испортится"
-        ElevatedCard(
-            elevation = CardDefaults.cardElevation(4.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp)
-        ) {
+        is ProductState.Success -> {
+            val products = (state as ProductState.Success).products
             Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF4F5F6)),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_shedule),
-                        contentDescription = null,
-                        tint = Color(0xFFFFD350),
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+                // Top bar
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White)
+                        .padding(vertical = 8.dp)
+                ) {
                     Text(
-                        "Скоро испортится",
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                        text = "FoodCare",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            brush = Brush.linearGradient(
+                                colors = listOf(Color(0xFF2E8B57), Color(0xFF5A83DD))
+                            )
+                        ),
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    )
+                    Text(
+                        text = "Управляйте своими продуктами",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(horizontal = 12.dp)
                     )
                 }
 
-                LazyColumn(
-                    contentPadding = PaddingValues(vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.heightIn(max = 180.dp)
+                // кнопки
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(sampleProducts) { product ->
-                        ProductItemExpires(product)
+                    InfoCard(
+                        title = "Сканировать продукт",
+                        icon = R.drawable.ic_frame_inspect,
+                        backgroundIconColor = Color(0xFF2E8B57),
+                        onClick = onScanClick,
+                        modifier = Modifier.weight(1f)
+                    )
+                    InfoCard(
+                        title = "Холодильник",
+                        subtitle = "${products.size} продукта",
+                        icon = R.drawable.ic_kitchen,
+                        backgroundIconColor = Color(0xFF5A83DD),
+                        onClick = onFridgeClick,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                // блок "Скоро испортится"
+                ElevatedCard(
+                    elevation = CardDefaults.cardElevation(4.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_shedule),
+                                contentDescription = null,
+                                tint = Color(0xFFFFD350),
+                                modifier = Modifier.size(28.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                "Скоро испортится",
+                                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)
+                            )
+                        }
+
+                        LazyColumn(
+                            contentPadding = PaddingValues(vertical = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.heightIn(max = 180.dp)
+                        ) {
+                            items(products) { product ->
+                                ProductItemExpires(product)
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-        // кнопка перехода к календарю
-        Button(
-            onClick = onCalendarClick,
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            modifier = Modifier
-                .width(120.dp)
-                .align(Alignment.Start)
-        ) {
-            Text("Календарь", color =  Color.Transparent)
+                // кнопка перехода к календарю
+                Button(
+                    onClick = onCalendarClick,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                    modifier = Modifier
+                        .width(120.dp)
+                        .align(Alignment.Start)
+                ) {
+                    Text("Календарь", color =  Color.Transparent)
+                }
+            }
         }
     }
 }
@@ -196,7 +210,7 @@ private fun InfoCard(
 }
 
 @Composable
-fun ProductItemExpires(product: Product) {
+fun ProductItemExpires(product: UserProduct) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -216,11 +230,13 @@ fun ProductItemExpires(product: Product) {
                 .width(40.dp)
             , Alignment.Center
         ) {
-            Text(
-                text = product.expiresIn,
-                color = Color(0xFFE8B10C),
-                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
-            )
+            product.endDate?.let {
+                Text(
+                    text = it,
+                    color = Color(0xFFE8B10C),
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                )
+            }
         }
     }
 }

@@ -2,14 +2,20 @@ package com.example.foodcare.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.foodcare.api.ApiService
 import com.example.foodcare.api.LoginRequest
 import com.example.foodcare.api.RegisterRequest
 import com.example.foodcare.api.RetrofitClient
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import javax.inject.Inject
 
-class AuthViewModel : ViewModel() {
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val api: ApiService
+) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
@@ -42,7 +48,7 @@ class AuthViewModel : ViewModel() {
                     password = password,
                     user_name = userName
                 )
-                val response = RetrofitClient.api.register(request)
+                val response = api.register(request)
                 _registerState.value = AuthState.Success(response.message)
             } catch (e: Exception) {
                 _registerState.value = AuthState.Error("Ошибка: ${e.message}")
@@ -60,7 +66,7 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             _loginState.value = AuthState.Loading
             try {
-                val response = RetrofitClient.api.login(
+                val response = api.login(
                     LoginRequest(user_login = userLogin, password = password)
                 )
                 _loginState.value = AuthState.Success(response.token ?: "Успешный вход")
