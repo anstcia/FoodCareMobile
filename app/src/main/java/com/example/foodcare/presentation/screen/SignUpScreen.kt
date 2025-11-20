@@ -23,6 +23,7 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.foodcare.R
 import com.example.foodcare.presentation.viewmodel.AuthState
@@ -32,8 +33,9 @@ import com.example.foodcare.presentation.viewmodel.AuthViewModel
 fun SignUpScreen(
     modifier: Modifier = Modifier,
     onLoginClick: () -> Unit = {},
-    viewModel: AuthViewModel = viewModel(),
-) {
+    viewModel: AuthViewModel = hiltViewModel(),
+
+    ) {
     var email by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }

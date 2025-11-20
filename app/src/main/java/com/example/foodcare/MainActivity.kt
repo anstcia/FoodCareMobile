@@ -9,7 +9,10 @@ import androidx.compose.runtime.*
 import com.example.foodcare.presentation.screen.*
 
 import com.example.foodcare.ui.theme.FoodCareTheme
+import dagger.hilt.EntryPoint
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
