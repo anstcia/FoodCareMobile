@@ -24,23 +24,16 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodcare.R
 import com.example.foodcare.presentation.viewmodel.AuthState
 import com.example.foodcare.presentation.viewmodel.AuthViewModel
-import com.example.foodcare.presentation.viewmodel.AuthViewModelFactory
-import com.example.foodcare.presentation.viewmodel.UserPreferences
 
 @Composable
 fun SignUpScreen(
     modifier: Modifier = Modifier,
     onLoginClick: () -> Unit = {},
-    viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(
-            userPreferences = UserPreferences(LocalContext.current)
-        )
-    ),
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
@@ -223,19 +216,35 @@ fun SignUpScreen(
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
                 when (registerState) {
-                    is AuthState.Loading -> CircularProgressIndicator(modifier = Modifier.padding(8.dp))
-                    is AuthState.Success -> Text(
-                        text = (registerState as AuthState.Success).message,
-                        color = Color(0xFF2E8B57),
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                    is AuthState.Error -> Text(
-                        text = (registerState as AuthState.Error).message,
-                        color = Color.Red,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
+                    is AuthState.Loading -> {
+                        CircularProgressIndicator(modifier = Modifier.padding(8.dp))
+                    }
+
+                    is AuthState.Success -> {
+                        Text(
+                            text = (registerState as AuthState.Success).message,
+                            color = Color(0xFF2E8B57),
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+
+                        LaunchedEffect(Unit) {
+                            kotlinx.coroutines.delay(3000)
+                            onLoginClick()
+                            viewModel.resetRegisterState()
+                        }
+                    }
+
+                    is AuthState.Error -> {
+                        Text(
+                            text = (registerState as AuthState.Error).message,
+                            color = Color.Red,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+
                     else -> {}
                 }
+
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.03f))
 
