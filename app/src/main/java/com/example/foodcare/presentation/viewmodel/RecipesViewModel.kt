@@ -5,12 +5,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.identity.util.UUID
 import com.example.foodcare.api.ApiService
+import com.example.foodcare.api.RecipeResponse
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class RecipesViewModel(
+@HiltViewModel
+class RecipesViewModel @Inject constructor(
     private val apiService: ApiService,
     private val userPreferences: UserPreferences
 ) : ViewModel() {
@@ -18,29 +22,43 @@ class RecipesViewModel(
     private val _recipesState = MutableStateFlow<RecipesState>(RecipesState.Idle)
     val recipesState: StateFlow<RecipesState> = _recipesState.asStateFlow()
 
-    private val cachedRecipes = mutableListOf<String>()
+    private val cachedRecipes = mutableListOf<RecipeResponse>()
 
-    fun getCachedRecipes(): List<String> = cachedRecipes.toList()
+    fun getCachedRecipes(): List<RecipeResponse> = cachedRecipes.toList()
+
+    fun getUserId(): String? = userPreferences.getUserId()
 
     fun generateRecipes(userUuid: UUID) {
-        Log.d("pipiska", "userUuid = $userUuid")
+        Log.d("RecipesViewModel", "Generating recipes for user: $userUuid")
         viewModelScope.launch {
             _recipesState.value = RecipesState.Loading
             try {
                 val response = apiService.generateRecipes(userUuid)
+                Log.d("RecipesViewModel", "Response received: isSuccessful=${response.isSuccessful}, code=${response.code()}")
+
                 if (response.isSuccessful) {
-                    val body = response.body() ?: ""
+                    val recipesList = response.body() ?: emptyList()
                     cachedRecipes.clear()
-                    cachedRecipes.add(body)
+                    cachedRecipes.addAll(recipesList)
                     _recipesState.value = RecipesState.Success(cachedRecipes.toList())
                 } else {
-                    _recipesState.value = RecipesState.Error("Backend error: ${response.code()}")
+                    val errorMessage = "Backend error: ${response.code()} - ${response.message()}"
+                    Log.e("RecipesViewModel", errorMessage)
+                    _recipesState.value = RecipesState.Error(errorMessage)
                 }
+            } catch (e: java.net.SocketTimeoutException) {
+                val errorMessage = "Request timeout. The server is taking too long to respond. Please try again."
+                Log.e("RecipesViewModel", "Timeout error: ${e.message}", e)
+                _recipesState.value = RecipesState.Error(errorMessage)
             } catch (e: Exception) {
-                _recipesState.value = RecipesState.Error(e.message ?: "Unknown error")
+                val errorMessage = e.message ?: "Unknown error occurred"
+                Log.e("RecipesViewModel", "Error generating recipes: $errorMessage", e)
+                _recipesState.value = RecipesState.Error(errorMessage)
             }
         }
     }
+
+
 
 
 }

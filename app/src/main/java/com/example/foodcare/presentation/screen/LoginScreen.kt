@@ -21,22 +21,15 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodcare.R
 import com.example.foodcare.presentation.viewmodel.AuthState
 import com.example.foodcare.presentation.viewmodel.AuthViewModel
-import com.example.foodcare.presentation.viewmodel.AuthViewModelFactory
-import com.example.foodcare.presentation.viewmodel.UserPreferences
 
 @Composable
 fun LoginScreen(
     modifier: Modifier = Modifier,
-    viewModel: AuthViewModel = viewModel(
-        factory = AuthViewModelFactory(
-            userPreferences = UserPreferences(LocalContext.current)
-        )
-    ),
+    viewModel: AuthViewModel = hiltViewModel(),
     onLoginSuccess: () -> Unit = {},
     onRegisterClick: () -> Unit = {},
     onForgotPasswordClick: () -> Unit = {}

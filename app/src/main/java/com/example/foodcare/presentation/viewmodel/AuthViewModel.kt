@@ -2,15 +2,18 @@ package com.example.foodcare.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.foodcare.api.ApiService
 import com.example.foodcare.api.LoginRequest
 import com.example.foodcare.api.RegisterRequest
-import com.example.foodcare.api.RetrofitClient
-import com.example.foodcare.presentation.viewmodel.UserPreferences
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AuthViewModel(
+@HiltViewModel
+class AuthViewModel @Inject constructor(
+    private val api: ApiService,
     private val userPreferences: UserPreferences
 ) : ViewModel() {
 
@@ -50,19 +53,18 @@ class AuthViewModel(
                     user_name = userName
                 )
 
-                val response = RetrofitClient.api.register(request)
+                val response = api.register(request)
 
                 // user_id уже строка — сохраняем
                 val id = response.user_id
                 _userId.value = id
 
-                // сохраняем в DataStore
+                // сохраняем в UserPreferences
                 if (id != null) {
                     userPreferences.saveUserId(id)
                 }
 
                 _registerState.value = AuthState.Success("Регистрация успешна")
-
             } catch (e: Exception) {
                 _registerState.value = AuthState.Error("Ошибка: ${e.message}")
             }
@@ -80,14 +82,14 @@ class AuthViewModel(
             _loginState.value = AuthState.Loading
 
             try {
-                val response = RetrofitClient.api.login(
+                val response = api.login(
                     LoginRequest(user_login = userLogin, password = password)
                 )
 
                 val id = response.user_id
                 _userId.value = id
 
-                // сохраняем в DataStore
+                // сохраняем в UserPreferences
                 if (id != null) {
                     userPreferences.saveUserId(id)
                 }
@@ -111,7 +113,7 @@ class AuthViewModel(
 
     fun logout() {
         viewModelScope.launch {
-            userPreferences.saveUserId("") // очищаем
+            userPreferences.clearUserId()
         }
         _userId.value = null
         _loginState.value = AuthState.Idle
