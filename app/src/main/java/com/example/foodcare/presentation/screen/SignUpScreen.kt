@@ -1,5 +1,6 @@
 package com.example.foodcare.presentation.screen
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,16 +24,23 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.foodcare.R
 import com.example.foodcare.presentation.viewmodel.AuthState
 import com.example.foodcare.presentation.viewmodel.AuthViewModel
+import com.example.foodcare.presentation.viewmodel.AuthViewModelFactory
+import com.example.foodcare.presentation.viewmodel.UserPreferences
 
 @Composable
 fun SignUpScreen(
     modifier: Modifier = Modifier,
     onLoginClick: () -> Unit = {},
-    viewModel: AuthViewModel = viewModel(),
+    viewModel: AuthViewModel = viewModel(
+        factory = AuthViewModelFactory(
+            userPreferences = UserPreferences(LocalContext.current)
+        )
+    ),
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var name by rememberSaveable { mutableStateOf("") }
@@ -195,6 +203,8 @@ fun SignUpScreen(
                 }
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.03f))
+                Log.d("Register", "Sending register request: login=$email, password=$password, name=$name")
+
 
                 Button(
                     onClick = { viewModel.register(email.trim(), name.trim(), password, confirmPassword) },

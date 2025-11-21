@@ -1,6 +1,7 @@
 package com.example.foodcare.presentation.screen
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,14 +26,17 @@ import androidx.compose.ui.unit.dp
 import com.example.foodcare.R
 import com.example.foodcare.domain.entity.Product
 import com.example.foodcare.ui.theme.FoodCareTheme
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     onScanClick: () -> Unit,
     onFridgeClick: () -> Unit,
-    onCalendarClick: () -> Unit
+    onCalendarClick: () -> Unit,
 ) {
+
+
     val sampleProducts = listOf(
         Product("Молоко Простоквашино", "Молочные", "19-09-2025", "2 дня", R.drawable.milk),
         Product("Курица Петелинка", "Мясо", "22-09-2025", "1 день", R.drawable.chicken),

@@ -17,34 +17,102 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-
-data class Recipe(
-    val title: String,
-    val time: String,
-    val difficulty: String
-)
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.android.identity.util.UUID
+import com.example.foodcare.presentation.viewmodel.*
 
 @Composable
-fun RecipeScreen(onBackClick: () -> Unit) {
-    var searchText by remember { mutableStateOf("") }
-
-    val recipes = listOf(
-        Recipe("Макароны по-флотски", "30 мин", "Легко"),
-        Recipe("Макароны с фрикадельками в молочном соусе", "45 мин", "Средне")
+fun RecipeScreen(
+    onBackClick: () -> Unit,
+    authViewModel: AuthViewModel? = null,
+    recipesViewModel: RecipesViewModel? = null
+) {
+    val context = LocalContext.current
+    val userPrefs = UserPreferences(context)
+    val actualAuthViewModel = authViewModel ?: viewModel(
+        factory = AuthViewModelFactory(userPreferences = userPrefs)
     )
 
-    val filtered = recipes.filter {
-        it.title.contains(searchText, ignoreCase = true)
+    val actualRecipesViewModel = recipesViewModel ?: viewModel(
+        factory = RecipesViewModelFactory(userPreferences = userPrefs)
+    )
+
+    val recipesState by actualRecipesViewModel.recipesState.collectAsState()
+
+    // id из UserPreferences
+    val savedId = userPrefs.getUserId()
+
+    // id из AuthViewModel (когда только что залогинились)
+    val userIdFromViewModel: String? by actualAuthViewModel.userId.collectAsState()
+
+
+    // итоговый id
+    val finalId = userIdFromViewModel ?: savedId
+
+    // Сохранение id после успешного логина
+    LaunchedEffect(userIdFromViewModel) {
+        if (userIdFromViewModel != null) {
+            userPrefs.saveUserId(userIdFromViewModel!!)
+        }
     }
+
+    // Запрос рецептов
+    LaunchedEffect(finalId) {
+        if (finalId != null) {
+            try {
+                val userUuid = UUID.fromString(finalId)
+                actualRecipesViewModel.generateRecipes(userUuid)
+            } catch (e: Exception) {
+                // Обработка ошибки конвертации UUID
+                android.util.Log.e("RecipeScreen", "Ошибка конвертации ID в UUID: ${e.message}")
+            }
+        }
+    }
+
+    RecipeScreenContent(
+        onBackClick = onBackClick,
+        userId = finalId,
+        recipesState = recipesState,
+        onGenerateRecipes = { id ->
+            id?.let { 
+                try {
+                    val userUuid = UUID.fromString(it)
+                    actualRecipesViewModel.generateRecipes(userUuid)
+                } catch (e: Exception) {
+                    android.util.Log.e("RecipeScreen", "Ошибка конвертации ID в UUID: ${e.message}")
+                }
+            }
+        },
+        cachedRecipes = actualRecipesViewModel.getCachedRecipes()
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RecipeScreenContent(
+    onBackClick: () -> Unit,
+    userId: String?,
+    recipesState: RecipesState,
+    onGenerateRecipes: (String?) -> Unit,
+    cachedRecipes: List<String>
+) {
+    var searchText by remember { mutableStateOf("") }
+
+    val recipes = when (recipesState) {
+        is RecipesState.Success -> recipesState.recipe
+        else -> cachedRecipes
+    }
+
+    val filtered = recipes.filter { it.contains(searchText, ignoreCase = true) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF8F9FA))
     ) {
-        // верхняя панель
         Column(modifier = Modifier.fillMaxWidth().background(Color.White)) {
             Row(
                 modifier = Modifier
@@ -70,6 +138,14 @@ fun RecipeScreen(onBackClick: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(start = 8.dp)
                 )
+                userId?.let { id ->
+                    Text(
+                        text = "ID: ${id.take(8)}...",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
             }
 
             OutlinedTextField(
@@ -81,71 +157,59 @@ fun RecipeScreen(onBackClick: () -> Unit) {
                     .padding(horizontal = 16.dp, vertical = 4.dp),
                 placeholder = { Text("Поиск рецептов") },
                 leadingIcon = {
-                    Icon(
-                        Icons.Filled.Search,
-                        contentDescription = null,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    Icon(Icons.Filled.Search, contentDescription = null, modifier = Modifier.size(22.dp))
                 },
                 shape = RoundedCornerShape(25.dp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF5F5F5),
-                    unfocusedContainerColor = Color(0xFFF5F5F5),
-                    disabledContainerColor = Color(0xFFF5F5F5),
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent
-                )
+                singleLine = true
             )
-
-            Spacer(modifier = Modifier.height(12.dp))
         }
 
-        // список рецептов
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(filtered) { recipe ->
-                RecipeCard(recipe)
+        when (recipesState) {
+            is RecipesState.Loading -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            is RecipesState.Error -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("Ошибка загрузки рецептов", color = MaterialTheme.colorScheme.error)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(onClick = { onGenerateRecipes(userId) }) {
+                            Text("Попробовать снова")
+                        }
+                    }
+                }
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(filtered) { recipeText ->
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(22.dp),
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text(
+                                    text = recipeText,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Start
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
-}
-
-@Composable
-fun RecipeCard(recipe: Recipe) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = recipe.title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = "⏲️ ${recipe.time}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "⚙️ ${recipe.difficulty}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF5A83DD)
-                )
-            }
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun RecipeScreenPreview() {
-    RecipeScreen(onBackClick = {})
 }
