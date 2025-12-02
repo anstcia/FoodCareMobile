@@ -59,12 +59,11 @@ fun FoodCareApp() {
             ) }
             composable("barcode") {
                 BarcodeScannerScreen(
-                    onBarcodeScanned = { code ->
-                        println("Отсканировано: $code")
-                        navController.popBackStack()
-                    },
                     onBack = {
                         navController.popBackStack()
+                    },
+                    onBarcodeScanned = { barcode ->
+                        navController.navigate("expiration_date/$barcode")
                     }
                 )
             }
@@ -78,6 +77,14 @@ fun FoodCareApp() {
 
             composable(Screen.ExpirationDate.route) {
                 ExpirationDateScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateToFridge = {navController.navigate(Screen.Fridge.route)}
+                )
+            }
+            composable("expiration_date/{barcode}") { backStackEntry ->
+                val barcode = backStackEntry.arguments?.getString("barcode") ?: ""
+                ExpirationDateScreen(
+                    barcode = barcode,
                     onBackClick = { navController.popBackStack() },
                     onNavigateToFridge = {navController.navigate(Screen.Fridge.route)}
                 )

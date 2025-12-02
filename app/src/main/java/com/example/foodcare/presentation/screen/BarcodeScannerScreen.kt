@@ -19,16 +19,20 @@ import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.foodcare.presentation.viewmodel.AuthViewModel
+import com.example.foodcare.presentation.viewmodel.BarcodeViewModel
 
 @Suppress("UnsafeOptInUsageError")
 @Composable
 fun BarcodeScannerScreen(
+    onBack: () -> Unit,
     onBarcodeScanned: (String) -> Unit,
-    onBack: () -> Unit
+    authViewModel: AuthViewModel = hiltViewModel(),
+    barcodeViewModel: BarcodeViewModel = hiltViewModel()
 ) {
+
+
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
@@ -45,48 +49,14 @@ fun BarcodeScannerScreen(
     )
 
     var scannedText by remember { mutableStateOf<String?>(null) }
-    var showDialog by remember { mutableStateOf(false) }
     var cameraProviderRef by remember { mutableStateOf<ProcessCameraProvider?>(null) }
 
-    LaunchedEffect(Unit) {
-        if (!hasCameraPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
-    }
+    var previewView by remember { mutableStateOf<PreviewView?>(null) }
 
-    val previewView = remember { PreviewView(context) }
 
-    Column(Modifier.fillMaxSize()) {
-        AndroidView(
-            factory = { previewView },
-            modifier = Modifier.weight(1f)
-        )
-
-        Button(
-            onClick = onBack,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text("Назад")
-        }
-    }
-
-    if (showDialog && scannedText != null) {
-        AlertDialog(
-            onDismissRequest = {},
-            title = { Text("Товар отсканирован") },
-            text = { Text("Отсканированный код: $scannedText") },
-            confirmButton = {
-                TextButton(onClick = {
-                    onBack()
-                }) {
-                    Text("ОК")
-                }
-            }
-        )
-    }
-
-    LaunchedEffect(hasCameraPermission) {
-        if (!hasCameraPermission) return@LaunchedEffect
+    // ─────────── Камера и сканирование ───────────
+    LaunchedEffect(hasCameraPermission, previewView) {
+        if (!hasCameraPermission || previewView == null) return@LaunchedEffect
 
         val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
         cameraProviderFuture.addListener({
@@ -94,7 +64,9 @@ fun BarcodeScannerScreen(
             cameraProviderRef = cameraProvider
 
             val preview = Preview.Builder().build().also {
-                it.setSurfaceProvider(previewView.surfaceProvider)
+                previewView?.let { pv ->
+                    it.setSurfaceProvider(pv.surfaceProvider)
+                }
             }
 
             val analysis = ImageAnalysis.Builder().build()
@@ -102,20 +74,21 @@ fun BarcodeScannerScreen(
 
             analysis.setAnalyzer(analyzerExecutor) { imageProxy ->
                 val mediaImage = imageProxy.image
+
                 if (mediaImage != null && scannedText == null) {
                     val image = InputImage.fromMediaImage(
                         mediaImage,
                         imageProxy.imageInfo.rotationDegrees
                     )
+
                     val scanner = BarcodeScanning.getClient()
                     scanner.process(image)
                         .addOnSuccessListener { barcodes ->
                             val firstBarcode = barcodes.firstOrNull()
                             firstBarcode?.rawValue?.let { value ->
                                 scannedText = value
-                                showDialog = true
-                                onBarcodeScanned(value)
                                 cameraProvider.unbindAll()
+                                onBarcodeScanned(value)
                             }
                         }
                         .addOnCompleteListener { imageProxy.close() }
@@ -135,6 +108,30 @@ fun BarcodeScannerScreen(
             } catch (exc: Exception) {
                 Log.e("Camera", "Use case binding failed", exc)
             }
+
         }, ContextCompat.getMainExecutor(context))
+    }
+
+    // UI для отображения камеры
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        if (!hasCameraPermission) {
+            Button(
+                onClick = { permissionLauncher.launch(Manifest.permission.CAMERA) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text("Запросить разрешение на камеру")
+            }
+        } else {
+            AndroidView(
+                factory = { ctx ->
+                    PreviewView(ctx).also { previewView = it }
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     }
 }
