@@ -22,7 +22,6 @@ class BarcodeViewModel @Inject constructor(
     private val _barcodeState = MutableStateFlow<BarcodeState>(BarcodeState.Idle)
     val barcodeState: StateFlow<BarcodeState> = _barcodeState.asStateFlow()
 
-    fun getUserId(): String? = userPreferences.getUserId()
 
     fun scanBarcodeAndCreateOrderProduct(
         userId: UUID,

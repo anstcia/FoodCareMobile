@@ -38,15 +38,16 @@ fun LoginScreen(
     var password by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-    val loginState by viewModel.loginState.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
     val canLogin = email.isNotBlank() && password.length >= 6
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
     val screenWidth = configuration.screenWidthDp.dp
+    val isLoading = uiState.loginState is AuthState.Loading
 
-    LaunchedEffect(loginState) {
-        if (loginState is AuthState.Success) {
+    LaunchedEffect(uiState.isAuthenticated) {
+        if (uiState.isAuthenticated) {
             onLoginSuccess()
         }
     }
@@ -101,13 +102,13 @@ fun LoginScreen(
                     )
                 }
 
-                labelText("Введите почтовый адрес")
+                labelText("Введите логин")
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Email") },
+                    label = { Text("Логин") },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 )
@@ -148,31 +149,38 @@ fun LoginScreen(
 
                 Button(
                     onClick = { viewModel.login(email.trim(), password) },
-                    enabled = canLogin,
+                    enabled = canLogin && !isLoading,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (canLogin) Color(0xFF5A83DD) else Color.Gray,
+                        containerColor = if (canLogin && !isLoading) Color(0xFF5A83DD) else Color.Gray,
                         contentColor = Color.White
                     ),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(screenHeight * 0.06f)
                 ) {
-                    Text("Войти", style = MaterialTheme.typography.bodyLarge)
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            color = Color.White,
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Войти", style = MaterialTheme.typography.bodyLarge)
+                    }
                 }
+
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
-                when (loginState) {
-                    is AuthState.Loading -> CircularProgressIndicator()
-                    is AuthState.Success -> {
+                when (uiState.loginState) {
+                    is com.example.foodcare.presentation.viewmodel.AuthState.Success -> {
                         Text(
-                            text = (loginState as AuthState.Success).message,
+                            text = (uiState.loginState as com.example.foodcare.presentation.viewmodel.AuthState.Success).message,
                             color = Color.Green
                         )
-                        LaunchedEffect(Unit) { onLoginSuccess() }
                     }
-                    is AuthState.Error -> Text(
-                        text = (loginState as AuthState.Error).message,
+                    is com.example.foodcare.presentation.viewmodel.AuthState.Error -> Text(
+                        text = (uiState.loginState as com.example.foodcare.presentation.viewmodel.AuthState.Error).message,
                         color = Color.Red
                     )
                     else -> {}

@@ -15,8 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RecipesViewModel @Inject constructor(
-    private val apiService: ApiService,
-    private val userPreferences: UserPreferences
+    private val apiService: ApiService
 ) : ViewModel() {
 
     private val _recipesState = MutableStateFlow<RecipesState>(RecipesState.Idle)
@@ -26,7 +25,6 @@ class RecipesViewModel @Inject constructor(
 
     fun getCachedRecipes(): List<RecipeResponse> = cachedRecipes.toList()
 
-    fun getUserId(): String? = userPreferences.getUserId()
 
     fun generateRecipes(userUuid: UUID) {
         Log.d("RecipesViewModel", "Generating recipes for user: $userUuid")

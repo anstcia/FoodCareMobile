@@ -1,7 +1,8 @@
 package com.example.foodcare.domain.entity
 
 data class UserProduct(
-    val id: String,
+    val orderProductId: String,
+    val productId: String,
     val name: String,
     val desc: String?,
     val endDate: String?,

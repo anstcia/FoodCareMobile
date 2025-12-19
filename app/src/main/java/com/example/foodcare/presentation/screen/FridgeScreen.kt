@@ -51,13 +51,9 @@ import com.example.foodcare.domain.entity.UserProduct
 import com.example.foodcare.presentation.viewmodel.ProductState
 import com.example.foodcare.presentation.viewmodel.ProductViewModel
 import com.example.foodcare.ui.theme.FoodCareTheme
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.Calendar
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 fun calculateDaysUntilEnd(endDate: String?): Int {
     if (endDate == null) return 0
@@ -82,7 +78,6 @@ fun FridgeScreen(
 
     // ViewModel
     val state by viewModel.state.collectAsState()
-
     when (state) {
         is ProductState.Loading -> {
             Text("Загрузка...")
@@ -236,7 +231,7 @@ fun FridgeScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(filteredProducts) { product ->
-                        ProductItem(product)
+                        ProductItem(product, viewModel)
                     }
                 }
             }
@@ -245,10 +240,14 @@ fun FridgeScreen(
 }
 
 @Composable
-fun ProductItem(product: UserProduct) {
+fun ProductItem(
+    product: UserProduct,
+    viewModel: ProductViewModel
+) {
     val daysLeft = calculateDaysUntilEnd(product.endDate)
     val isExpiringSoon = daysLeft <= 2
     val isExpire = daysLeft <= 0
+
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -258,6 +257,7 @@ fun ProductItem(product: UserProduct) {
         elevation = CardDefaults.cardElevation(6.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+
             Row(
                 modifier = Modifier
                     .padding(16.dp)
@@ -266,59 +266,70 @@ fun ProductItem(product: UserProduct) {
             ) {
                 Spacer(modifier = Modifier.width(12.dp))
 
-                Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.Center) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text(
-                        product.name,
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                        text = product.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Осталось:",
-                            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium)
+                            text = "До окончания:",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium
                         )
+
                         Spacer(modifier = Modifier.width(6.dp))
 
-                        // бейдж с динамическим цветом
-                        if(isExpire){
+                        if (isExpire) {
                             Box(
                                 modifier = Modifier
-                                    .background(color = Color(0xFFFEA1A2), shape = RoundedCornerShape(50))
+                                    .background(
+                                        color = Color(0xFFFEA1A2),
+                                        shape = RoundedCornerShape(50)
+                                    )
                                     .padding(horizontal = 10.dp, vertical = 4.dp)
                             ) {
-                                product.endDate?.let {
-                                    Text(
-                                        text = "Просрочено",
-                                        color = Color(0xFFD30000)   ,
-                                        fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
+                                Text(
+                                    text = "Просрочено",
+                                    color = Color(0xFFD30000),
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
-                        }
-                        else{
-                            val badgeColor = if (isExpiringSoon)
-                                Color(0xFFE8B10C).copy(alpha = 0.15f)
-                            else
-                                Color(0xFF2E8B57).copy(alpha = 0.15f)
+                        } else {
+                            val badgeColor =
+                                if (isExpiringSoon)
+                                    Color(0xFFE8B10C).copy(alpha = 0.15f)
+                                else
+                                    Color(0xFF2E8B57).copy(alpha = 0.15f)
 
-                            val textColor = if (isExpiringSoon) Color(0xFFE8B10C) else Color(0xFF2E8B57)
+                            val textColor =
+                                if (isExpiringSoon)
+                                    Color(0xFFE8B10C)
+                                else
+                                    Color(0xFF2E8B57)
 
                             Box(
                                 modifier = Modifier
-                                    .background(color = badgeColor, shape = RoundedCornerShape(50))
+                                    .background(
+                                        color = badgeColor,
+                                        shape = RoundedCornerShape(50)
+                                    )
                                     .padding(horizontal = 10.dp, vertical = 4.dp)
                             ) {
-                                product.endDate?.let {
-                                    Text(
-                                        text = daysLeft.toString(),
-                                        color = textColor,
-                                        fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
-                                }
+                                Text(
+                                    text = daysText(daysLeft),
+                                    color = textColor,
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
                         }
                     }
@@ -326,17 +337,29 @@ fun ProductItem(product: UserProduct) {
             }
 
             IconButton(
-                onClick = { /* удалить */ },
+                onClick = { viewModel.deleteProduct(product) },
                 modifier = Modifier
                     .size(32.dp)
                     .align(Alignment.TopEnd)
                     .offset(x = (-8).dp, y = 8.dp)
             ) {
-                Icon(Icons.Default.Close, contentDescription = "Удалить", tint = Color.Gray.copy(alpha = 0.7f))
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    contentDescription = "Удалить",
+                    tint = Color.Gray.copy(alpha = 0.7f)
+                )
             }
         }
     }
 }
+
+fun daysText(days: Int): String =
+    when {
+        days <= 0 -> "0 дн."
+        days == 1 -> "1 день"
+        days in 2..4 -> "$days дня"
+        else -> "$days дней"
+    }
 
 @Preview(showBackground = true)
 @Composable

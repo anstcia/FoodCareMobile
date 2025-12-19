@@ -3,61 +3,41 @@ package com.example.foodcare
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.*
-import com.example.foodcare.presentation.screen.*
-
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
+import com.example.foodcare.presentation.screen.FoodCareApp
+import com.example.foodcare.presentation.screen.FoodCareBottomBar
 import com.example.foodcare.ui.theme.FoodCareTheme
-import dagger.hilt.EntryPoint
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
         setContent {
             FoodCareTheme {
-                var currentScreen by remember { mutableStateOf("start") }
-                var isLoggedIn by remember { mutableStateOf(false) }
 
-                when (currentScreen) {
+                val navController = rememberNavController()
 
-                    "start" -> {
-                        StartPage(
-                            onRegisterClick = { currentScreen = "signup" },
-                            onLoginClick = { currentScreen = "login" }
+                Scaffold(
+                    bottomBar = {
+                        FoodCareBottomBar(navController)
+                    }
+                ) { padding ->
+
+                    Box(Modifier.padding(padding)) {
+                        FoodCareApp(
+                            navController = navController,
                         )
-                    }
-
-                    "signup" -> {
-                        SignUpScreen(
-                            onLoginClick = {
-                                currentScreen = "login"
-                            }                        )
-                    }
-
-                    "login" -> {
-                        LoginScreen(
-                            onRegisterClick = { currentScreen = "signup" },
-                            onForgotPasswordClick = { println("Забыли пароль (заглушка)") },
-                            onLoginSuccess = {
-                                isLoggedIn = true
-                                currentScreen = "home"
-                            }
-                        )
-                    }
-
-
-
-                    "home" -> {
-                        FoodCareApp()
                     }
                 }
             }
         }
     }
 }
+
