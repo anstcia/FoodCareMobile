@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodcare.R
 import com.example.foodcare.presentation.viewmodel.AuthState
 import com.example.foodcare.presentation.viewmodel.AuthViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun SignUpScreen(
@@ -42,7 +43,18 @@ fun SignUpScreen(
     var confirmPassword by rememberSaveable { mutableStateOf("") }
     var confirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
-    val registerState by viewModel.registerState.collectAsState(initial = AuthState.Idle)
+    val uiState by viewModel.uiState.collectAsState()
+
+    val registerState = uiState.registerState
+
+    LaunchedEffect(registerState) {
+        if (registerState is AuthState.Success) {
+            delay(1500)
+            viewModel.resetLoginState()
+            onLoginClick()
+        }
+    }
+
     val passwordsMatch = password == confirmPassword
     val canRegister = email.isNotBlank() && password.length >= 4 && confirmPassword.isNotBlank() && passwordsMatch
 
@@ -213,8 +225,6 @@ fun SignUpScreen(
                     Text("Зарегистрироваться", style = MaterialTheme.typography.bodyLarge)
                 }
 
-                Spacer(modifier = Modifier.height(screenHeight * 0.02f))
-
                 when (registerState) {
                     is AuthState.Loading -> {
                         CircularProgressIndicator(modifier = Modifier.padding(8.dp))
@@ -222,21 +232,15 @@ fun SignUpScreen(
 
                     is AuthState.Success -> {
                         Text(
-                            text = (registerState as AuthState.Success).message,
+                            text = registerState.message,
                             color = Color(0xFF2E8B57),
                             modifier = Modifier.padding(top = 8.dp)
                         )
-
-                        LaunchedEffect(Unit) {
-                            kotlinx.coroutines.delay(3000)
-                            onLoginClick()
-                            viewModel.resetRegisterState()
-                        }
                     }
 
                     is AuthState.Error -> {
                         Text(
-                            text = (registerState as AuthState.Error).message,
+                            text = registerState.message,
                             color = Color.Red,
                             modifier = Modifier.padding(top = 8.dp)
                         )
@@ -244,7 +248,6 @@ fun SignUpScreen(
 
                     else -> {}
                 }
-
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.03f))
 

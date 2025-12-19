@@ -1,21 +1,11 @@
 package com.example.foodcare.presentation.screen
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -27,19 +17,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.foodcare.R
-import com.example.foodcare.presentation.viewmodel.AuthViewModel
+import kotlinx.coroutines.delay
 
 @Composable
-fun StartPage(
+fun SplashScreen(
     modifier: Modifier = Modifier,
-    onRegisterClick: () -> Unit = {},
-    onLoginClick: () -> Unit = {}
+    onTimeout: () -> Unit
+
 ) {
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
     val screenWidth = configuration.screenWidthDp.dp
+
+    LaunchedEffect(Unit) {
+        delay(1000) // 1 секунда Splash
+        onTimeout()
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -99,45 +94,6 @@ fun StartPage(
                         .padding(horizontal = screenWidth * 0.1f)
                         .wrapContentWidth(Alignment.CenterHorizontally)
                 )
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = screenHeight * 0.12f), // 6% высоты
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Button(
-                    onClick = onRegisterClick,
-                    modifier = Modifier
-                        .fillMaxWidth(0.86f)
-                        .height(screenHeight * 0.07f), // 7% высоты
-                    shape = RoundedCornerShape(17.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7B90E6))
-                ) {
-                    Text(
-                        text = "Зарегистрироваться",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(screenHeight * 0.02f))
-
-                Button(
-                    onClick = onLoginClick,
-                    modifier = Modifier
-                        .fillMaxWidth(0.86f)
-                        .height(screenHeight * 0.07f),
-                    shape = RoundedCornerShape(17.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF83A2E5))
-                ) {
-                    Text(
-                        text = "У меня уже есть аккаунт",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White
-                    )
-                }
             }
         }
     }

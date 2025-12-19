@@ -5,6 +5,7 @@ import com.example.foodcare.data.remote.ProductDto
 import com.example.foodcare.domain.entity.UserProductResponse
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
@@ -12,7 +13,12 @@ import java.util.Date
 
 data class RegisterRequest(val user_login: String, val password: String, val user_name: String)
 data class LoginRequest(val user_login: String, val password: String)
-data class ApiResponse(val user_id: String?, val access_token: String?, val token_type: String?)
+data class ApiResponse(
+    val user_id: String?,
+    val access_token: String?,
+    val refresh_token: String?,
+    val token_type: String?
+)
 
 data class RecipesRequest(val user_id: String)
 
@@ -22,6 +28,10 @@ data class RecipeResponse(
     val time: String,
     val recipe: String
 )
+data class RefreshRequest(
+    val refresh_token: String
+)
+
 
 data class ProductRequest(val user_id: String,val scannedText: String)
 
@@ -65,8 +75,13 @@ interface ApiService {
 
     @GET("order/getallproductsuser")
     suspend fun getAllProductsOfUser(
-        @Query("user_id") userId: String
+        @Query("user_id") userId: String?
     ): List<UserProductResponse>
+
+    @DELETE("/delete_order_product_by_id")
+    suspend fun deleteProductOfUser(
+        @Query("UUID") productId: String
+    )
 
     @POST("/openfoodfacts/scan")
     suspend fun scanBarcode(

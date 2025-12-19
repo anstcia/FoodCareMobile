@@ -5,6 +5,7 @@ package com.example.foodcare.presentation.screen
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.android.identity.util.UUID
 import com.example.foodcare.presentation.viewmodel.*
@@ -32,32 +34,25 @@ fun RecipeScreen(
     authViewModel: AuthViewModel = hiltViewModel(),
     recipesViewModel: RecipesViewModel = hiltViewModel()
 ) {
+
+    val authState by authViewModel.uiState.collectAsState()
+
     val recipesState by recipesViewModel.recipesState.collectAsState()
 
-    // id из UserPreferences (через RecipesViewModel)
-    val savedId = recipesViewModel.getUserId()
+    val userId = authState.userData?.id
 
-    // id из AuthViewModel (когда только что залогинились)
-    val userIdFromViewModel: String? by authViewModel.userId.collectAsState()
-
-    // итоговый id
-    val finalId = userIdFromViewModel ?: savedId
-
-    // Запрос рецептов
-    LaunchedEffect(finalId) {
-        if (finalId != null) {
+    LaunchedEffect(userId) {
+        if (userId != null) {
             try {
-                val userUuid = UUID.fromString(finalId)
-                recipesViewModel.generateRecipes(userUuid)
+                recipesViewModel.generateRecipes(UUID.fromString(userId))
             } catch (e: Exception) {
-                // Обработка ошибки конвертации UUID
-                android.util.Log.e("RecipeScreen", "Ошибка конвертации ID в UUID: ${e.message}")
+                Log.e("RecipeScreen", "Invalid UUID: ${e.message}")
             }
         }
     }
     RecipeScreenContent(
         onBackClick = onBackClick,
-        userId = finalId,
+        userId = userId,
         recipesState = recipesState,
         onGenerateRecipes = { id ->
             id?.let { 
@@ -90,7 +85,7 @@ fun RecipeScreenContent(
         else -> cachedRecipes
     }
 
-    val filtered = recipes.filter { 
+    val filtered = recipes.filter {
         it.name.contains(searchText, ignoreCase = true) ||
         it.recipe.contains(searchText, ignoreCase = true)
     }
@@ -153,8 +148,22 @@ fun RecipeScreenContent(
 
         when (recipesState) {
             is RecipesState.Loading -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(Modifier.fillMaxSize().padding(10.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
                     CircularProgressIndicator()
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                       text = "Готовим рецепты, пожалуйтся подождите!",
+                       style = MaterialTheme.typography.bodyMedium,
+                       fontSize = 20.sp,
+                       color = Color(0xFF333333),
+                       textAlign = TextAlign.Center,
+                       modifier = Modifier
+                           .wrapContentWidth(Alignment.CenterHorizontally)
+                   )
+
                 }
             }
 

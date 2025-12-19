@@ -5,7 +5,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.*
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -31,14 +30,14 @@ fun ExpirationDateScreen(
     var selectedDate: Date? by remember { mutableStateOf(null) }
 
     val barcodeState by barcodeViewModel.barcodeState.collectAsState()
-    val savedId = barcodeViewModel.getUserId()
-    val userIdFromViewModel: String? by authViewModel.userId.collectAsState()
-    val finalId = userIdFromViewModel ?: savedId
+    val authUiState by authViewModel.uiState.collectAsState()
+
+    val userId = authUiState.userData?.id
 
     // Обновляем selectedDate при выборе
     LaunchedEffect(datePickerState.selectedDateMillis) {
-        val millis = datePickerState.selectedDateMillis
-        selectedDate = if (millis != null) Date(millis) else null
+        selectedDate = datePickerState.selectedDateMillis
+            ?.let { Date(it) }
     }
 
     // Навигация при успешном сохранении
@@ -81,11 +80,9 @@ fun ExpirationDateScreen(
             Button(
                 onClick = {
                     val millis = datePickerState.selectedDateMillis
-                    if (millis != null && barcode.isNotEmpty() && finalId != null) {
-                        val chosenDate = Date(millis)
-
+                    if (millis != null && barcode.isNotEmpty() && userId != null) {
                         barcodeViewModel.scanBarcodeAndCreateOrderProduct(
-                            userId = UUID.fromString(finalId),
+                            userId = UUID.fromString(userId),
                             barcode = barcode,
                             expirationDate = selectedDate
                         )
@@ -94,7 +91,7 @@ fun ExpirationDateScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
-                enabled = selectedDate != null && barcode.isNotEmpty() && finalId != null,
+                enabled = selectedDate != null && barcode.isNotEmpty() && userId != null,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF7B90E6)
                 )

@@ -18,16 +18,17 @@ object AppModule {
 
     @Provides
     @Singleton
+    fun provideUserPreferences(@ApplicationContext context: Context): UserPreferences {
+        return UserPreferences(context)
+    }
+
+    @Provides
+    @Singleton
     fun provideProductRepository(
         apiService: ApiService,
         userPreferences: UserPreferences
     ): ProductRepository {
         return ProductRepositoryImpl(apiService, userPreferences)
     }
-
-    @Provides
-    @Singleton
-    fun provideUserPreferences(@ApplicationContext context: Context): UserPreferences {
-        return UserPreferences(context)
-    }
 }
+
