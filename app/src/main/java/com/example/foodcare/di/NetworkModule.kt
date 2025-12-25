@@ -23,7 +23,7 @@ object NetworkModule {
 
     private const val BASE_URL = "http://10.0.2.2:8000/"
 
-    // ---------- Interceptors ----------
+    // Interceptors
 
     @Provides
     @Singleton
@@ -32,7 +32,7 @@ object NetworkModule {
     ): AuthInterceptor =
         AuthInterceptor(userPreferences)
 
-    // ---------- OkHttp без авторизации (для refresh) ----------
+    // OkHttp без авторизации (для refresh)
 
     @Provides
     @Singleton
@@ -43,7 +43,7 @@ object NetworkModule {
             .readTimeout(30, TimeUnit.SECONDS)
             .build()
 
-    // ---------- Refresh Retrofit ----------
+    // Refresh Retrofit
 
     @Provides
     @Singleton
@@ -64,7 +64,7 @@ object NetworkModule {
     ): RefreshApi =
         retrofit.create(RefreshApi::class.java)
 
-    // ---------- Authenticator ----------
+    // Authenticator
 
     @Provides
     @Singleton
@@ -74,7 +74,7 @@ object NetworkModule {
     ): TokenAuthenticator =
         TokenAuthenticator(refreshApi, userPreferences)
 
-    // ---------- OkHttp с авторизацией ----------
+    // OkHttp с авторизацией
 
     @Provides
     @Singleton
@@ -95,7 +95,7 @@ object NetworkModule {
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
 
-    // ---------- Main Retrofit ----------
+    // Main Retrofit
 
     @Provides
     @Singleton

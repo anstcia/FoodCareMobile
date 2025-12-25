@@ -59,7 +59,6 @@ import com.example.foodcare.presentation.viewmodel.ProductViewModel
 fun HomeScreen(
     onScanClick: () -> Unit,
     onFridgeClick: () -> Unit,
-    onCalendarClick: () -> Unit,
     onLogout: () -> Unit
 ) {
     val productViewModel:  ProductViewModel = hiltViewModel()
@@ -72,7 +71,9 @@ fun HomeScreen(
 
     when(state){
         is ProductState.Loading -> {
-            Column(Modifier.fillMaxSize().padding(10.dp),
+            Column(Modifier
+                .fillMaxSize()
+                .padding(10.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -136,7 +137,9 @@ fun HomeScreen(
                 )
                 // кнопки
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 12.dp, end = 12.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     InfoCard(
@@ -160,7 +163,9 @@ fun HomeScreen(
                 ElevatedCard(
                     elevation = CardDefaults.cardElevation(4.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 12.dp, end = 12.dp)
                 ) {
                     Column(
                         modifier = Modifier.padding(12.dp),

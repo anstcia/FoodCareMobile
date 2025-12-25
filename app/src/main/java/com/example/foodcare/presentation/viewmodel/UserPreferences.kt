@@ -7,6 +7,9 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.foodcare.api.ApiResponse
+import com.example.foodcare.api.ApiService
+import com.example.foodcare.domain.entity.User
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.firstOrNull
@@ -35,7 +38,7 @@ class UserPreferences(private val context: Context) {
     private val dataStore = context.dataStore
     private val mutex = Mutex()
 
-    // ------------------ Безопасные Flow для чтения ------------------
+    // безопасные Flow для чтения
     private fun <T> createSafeFlow(
         key: Preferences.Key<T>,
         defaultValue: T? = null
@@ -54,7 +57,7 @@ class UserPreferences(private val context: Context) {
     val accessToken: Flow<String?> = createSafeFlow(KEY_ACCESS_TOKEN)
     val refreshToken: Flow<String?> = createSafeFlow(KEY_REFRESH_TOKEN)
 
-    // ------------------ Проверка авторизации ------------------
+    /*  проверка авторизации
     val isLoggedIn: Flow<Boolean> = dataStore.data
         .catch { exception ->
             Log.e(TAG, "Error checking login status", exception)
@@ -65,8 +68,8 @@ class UserPreferences(private val context: Context) {
             val refresh = preferences[KEY_REFRESH_TOKEN]
             !access.isNullOrEmpty() && !refresh.isNullOrEmpty()
         }
-
-    // ------------------ Получение токенов с проверкой ------------------
+    */
+    // получение токенов с проверкой
     suspend fun getAccessToken(): String? = try {
         accessToken.firstOrNull()
     } catch (e: Exception) {
@@ -81,14 +84,14 @@ class UserPreferences(private val context: Context) {
         null
     }
 
-    // ------------------ Проверка валидности токенов ------------------
+    //проверка валидности токенов
     suspend fun hasValidTokens(): Boolean {
         val access = getAccessToken()
         val refresh = getRefreshToken()
         return !access.isNullOrEmpty() && !refresh.isNullOrEmpty()
     }
 
-    // ------------------ Сохранение токенов с временной меткой ------------------
+    //сохранение токенов с временной меткой
     suspend fun saveTokens(access: String, refresh: String, expiresIn: Long = 3600) {
         mutex.withLock {
             try {
@@ -107,7 +110,7 @@ class UserPreferences(private val context: Context) {
         }
     }
 
-    // ------------------ Проверка истечения access token ------------------
+    /*/проверка истечения access token
     suspend fun isAccessTokenExpired(): Boolean {
         return try {
             val expiryStr = dataStore.data.firstOrNull()?.get(KEY_TOKEN_EXPIRY) ?: return true
@@ -117,9 +120,9 @@ class UserPreferences(private val context: Context) {
             Log.e(TAG, "Failed to check token expiry", e)
             true
         }
-    }
+    }*/
 
-    // ------------------ Сохранение пользователя ------------------
+    // сохранение пользователя
     suspend fun saveUser(id: String, login: String, name: String?) {
         mutex.withLock {
             try {
@@ -142,7 +145,7 @@ class UserPreferences(private val context: Context) {
         }
     }
 
-    // ------------------ Очистка ------------------
+    // Очистка
     suspend fun clearTokens() {
         mutex.withLock {
             try {
@@ -171,7 +174,7 @@ class UserPreferences(private val context: Context) {
         }
     }
 
-    // ------------------ Комбинированные данные ------------------
+    //  Комбинированные данные
     data class UserData(
         val id: String? = null,
         val login: String? = null,
@@ -194,7 +197,7 @@ class UserPreferences(private val context: Context) {
                 refreshToken = preferences[KEY_REFRESH_TOKEN]
             )
         }
-
+    /*
     suspend fun getUserDataOnce(): UserData? = try {
         val prefs = dataStore.data.firstOrNull() ?: return null
         UserData(
@@ -207,7 +210,8 @@ class UserPreferences(private val context: Context) {
     } catch (e: Exception) {
         Log.e(TAG, "Failed to get user data once", e)
         null
-    }
+    }*/
+
 }
 
 private fun emptyPreferences(): Preferences = androidx.datastore.preferences.core.emptyPreferences()

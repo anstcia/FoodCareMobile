@@ -107,9 +107,6 @@ fun FoodCareNavHost(
                 onFridgeClick = {
                     navController.navigate(Screen.Fridge.route)
                 },
-                onCalendarClick = {
-                    navController.navigate(Screen.ExpirationDate.route)
-                },
                 onLogout = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
