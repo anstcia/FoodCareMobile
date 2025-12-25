@@ -87,7 +87,7 @@ git clone https://github.com/anstcia/FoodCareMobile.git
    ```
 3. Запустить сервисы:
    ```bash
-   docker compose up
+   docker compose up --build
    ```
 
 После запуска backend доступен по адресу:  
