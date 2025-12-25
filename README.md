@@ -81,13 +81,13 @@ git clone https://github.com/anstcia/FoodCareMobile.git
 ## 🗄 Backend (FastAPI + PostgreSQL)
 
 1. Установить Docker и Docker Compose.
-2. Перейти в директорию backend-проекта:
+2. Перейти в директорию проекта:
    ```bash
-   cd foodcare_backend
+   cd FoodCare
    ```
 3. Запустить сервисы:
    ```bash
-   docker compose up --build
+   docker compose up
    ```
 
 После запуска backend доступен по адресу:  
