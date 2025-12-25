@@ -1,0 +1,29 @@
+
+services:
+
+  foodcare_database:
+    image: tvisterious/foodcare-database:1.0.1
+    ports:
+      - "5433:5432"
+    networks: 
+      - foodcare_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  foodcare_server:
+    image: tvisterious/foodcare-server:1.0.7
+    ports:
+      - "8000:8000"
+    depends_on:
+      foodcare_database:
+        condition: service_healthy
+    networks:
+      - foodcare_network
+
+networks:
+  foodcare_network:
