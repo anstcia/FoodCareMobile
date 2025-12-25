@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.foodcare.api.ApiService
 import com.example.foodcare.api.LoginRequest
 import com.example.foodcare.api.RegisterRequest
+import com.example.foodcare.domain.entity.User
+import com.example.foodcare.domain.usecase.GetProductsUseCase
+import com.example.foodcare.domain.usecase.GetUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +24,7 @@ import java.net.UnknownHostException
 import javax.inject.Inject
 
 
-// ---------- Состояние ViewModel ----------
+// состояние ViewModel
 data class AuthUiState(
     val isAuthenticated: Boolean = false,
     val userData: UserPreferences.UserData? = null,
@@ -32,14 +35,15 @@ data class AuthUiState(
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val api: ApiService,
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val getUser: GetUserUseCase,
 ) : ViewModel() {
 
-    // ---------- UI состояние ----------
+    // UI состояние
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-    // Для отмены предыдущих запросов
+    // для отмены предыдущих запросов
     private var loginJob: Job? = null
     private var registerJob: Job? = null
 
@@ -48,7 +52,7 @@ class AuthViewModel @Inject constructor(
         checkAuthStatus()
     }
 
-    // ---------- Наблюдение за данными пользователя ----------
+    //Наблюдение за данными пользователя
     private fun observeUserData() {
         userPreferences.userData
             .onEach { userData ->
@@ -57,7 +61,7 @@ class AuthViewModel @Inject constructor(
             .launchIn(viewModelScope)
     }
 
-    // ---------- Проверка авторизации при старте ----------
+    //  Проверка авторизации при старте
     private fun checkAuthStatus() {
         viewModelScope.launch {
             try {
@@ -74,7 +78,7 @@ class AuthViewModel @Inject constructor(
     }
 
 
-    // ---------- Валидация ----------
+    // Валидация
     private fun validateRegistration(
         userLogin: String,
         userName: String,
@@ -103,7 +107,7 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    // ---------- Регистрация ----------
+    // регистрация
     fun register(
         userLogin: String,
         userName: String,
@@ -146,7 +150,7 @@ class AuthViewModel @Inject constructor(
 
 
 
-    // ---------- Логин ----------
+    // логин
     fun login(userLogin: String, password: String) {
         loginJob?.cancel()
 
@@ -169,11 +173,12 @@ class AuthViewModel @Inject constructor(
                 val userId = response.user_id ?: error("user_id is null")
                 val access = response.access_token ?: error("access_token is null")
                 val refresh = response.refresh_token ?: error("refresh_token is null")
+                val user: User = getUser(userId)
 
                 userPreferences.saveUser(
                     id = userId,
-                    login = userLogin,
-                    name = "Пользователь"
+                    login = user.userLogin,
+                    name = user.userName
                 )
 
                 userPreferences.saveTokens(access, refresh)
@@ -194,7 +199,7 @@ class AuthViewModel @Inject constructor(
     }
 
 
-    // ---------- Выход ----------
+    // выход
     fun logout() {
         viewModelScope.launch {
             userPreferences.clearUser()
@@ -203,7 +208,7 @@ class AuthViewModel @Inject constructor(
     }
 
 
-    // ---------- Обновление профиля ----------
+    /* обновление профиля
     fun updateUserName(newName: String) {
         viewModelScope.launch {
             val currentData = userPreferences.getUserDataOnce()
@@ -216,8 +221,8 @@ class AuthViewModel @Inject constructor(
             }
         }
     }
-
-    // ---------- Обработка сетевых ошибок ----------
+    */
+    // обработка сетевых ошибок
     private fun handleNetworkError(e: Exception): String {
         return when (e) {
             is SocketTimeoutException -> "Таймаут соединения. Проверьте интернет"
@@ -237,17 +242,17 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    // ---------- Сброс состояний ----------
+    // сброс состояний
     fun resetLoginState() {
         _uiState.update { it.copy(loginState = AuthState.Idle) }
     }
-
+    /*
     fun resetRegisterState() {
         _uiState.update { it.copy(registerState = AuthState.Idle) }
     }
 
-    // ---------- Проверка авторизации ----------
+    // проверка авторизации
     fun checkAuthStatusManually() {
         checkAuthStatus()
-    }
+    }*/
 }

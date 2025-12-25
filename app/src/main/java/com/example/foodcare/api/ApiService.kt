@@ -2,12 +2,14 @@ package com.example.foodcare.api
 
 import com.android.identity.util.UUID
 import com.example.foodcare.data.remote.ProductDto
+import com.example.foodcare.data.remote.UserResponse
 import com.example.foodcare.domain.entity.UserProductResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 import java.util.Date
 
@@ -91,5 +93,8 @@ interface ApiService {
         @Query("end_date") endDate: String
     ): Response<ProductResponse>
 
-
+    @GET("/get_user_by_id/{user_id}")
+    suspend fun getUserById(
+        @Path("user_id") userId: String
+    ): List<UserResponse>
 }

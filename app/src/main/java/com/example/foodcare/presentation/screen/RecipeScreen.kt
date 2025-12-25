@@ -31,41 +31,88 @@ import com.example.foodcare.api.RecipeResponse
 @Composable
 fun RecipeScreen(
     onBackClick: () -> Unit,
-    authViewModel: AuthViewModel = hiltViewModel(),
-    recipesViewModel: RecipesViewModel = hiltViewModel()
 ) {
+    val productViewModel:  ProductViewModel = hiltViewModel()
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val recipesViewModel: RecipesViewModel = hiltViewModel()
 
     val authState by authViewModel.uiState.collectAsState()
-
+    val productState by productViewModel.state.collectAsState()
     val recipesState by recipesViewModel.recipesState.collectAsState()
 
     val userId = authState.userData?.id
 
-    LaunchedEffect(userId) {
-        if (userId != null) {
-            try {
-                recipesViewModel.generateRecipes(UUID.fromString(userId))
-            } catch (e: Exception) {
-                Log.e("RecipeScreen", "Invalid UUID: ${e.message}")
+    when(productState){
+        is ProductState.Loading -> {
+            Column(Modifier.fillMaxSize().padding(10.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                CircularProgressIndicator()
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "Осматриваем холодильник...",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 20.sp,
+                    color = Color(0xFF333333),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .wrapContentWidth(Alignment.CenterHorizontally)
+                )
+
+            }
+        }
+        is ProductState.Error -> {
+            Text("Ошибка: ${(productState as ProductState.Error).message}")
+        }
+        is ProductState.Success ->{
+            val products = (productState as ProductState.Success).products
+            if(products.isEmpty()){
+                Column(Modifier.fillMaxSize().padding(10.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = "Ваш холодильник пустой 😔",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontSize = 20.sp,
+                        color = Color(0xFF333333),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .wrapContentWidth(Alignment.CenterHorizontally)
+                    )
+
+                }
+            } else{
+                LaunchedEffect(userId) {
+                    if (userId != null) {
+                        try {
+                            recipesViewModel.generateRecipes(UUID.fromString(userId))
+                        } catch (e: Exception) {
+                            Log.e("RecipeScreen", "Invalid UUID: ${e.message}")
+                        }
+                    }
+                }
+                RecipeScreenContent(
+                    onBackClick = onBackClick,
+                    userId = userId,
+                    recipesState = recipesState,
+                    onGenerateRecipes = { id ->
+                        id?.let {
+                            try {
+                                val userUuid = UUID.fromString(it)
+                                recipesViewModel.generateRecipes(userUuid)
+                            } catch (e: Exception) {
+                                android.util.Log.e("RecipeScreen", "Ошибка конвертации ID в UUID: ${e.message}")
+                            }
+                        }
+                    },
+                    cachedRecipes = recipesViewModel.getCachedRecipes()
+                )
             }
         }
     }
-    RecipeScreenContent(
-        onBackClick = onBackClick,
-        userId = userId,
-        recipesState = recipesState,
-        onGenerateRecipes = { id ->
-            id?.let { 
-                try {
-                    val userUuid = UUID.fromString(it)
-                    recipesViewModel.generateRecipes(userUuid)
-                } catch (e: Exception) {
-                    android.util.Log.e("RecipeScreen", "Ошибка конвертации ID в UUID: ${e.message}")
-                }
-            }
-        },
-        cachedRecipes = recipesViewModel.getCachedRecipes()
-    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

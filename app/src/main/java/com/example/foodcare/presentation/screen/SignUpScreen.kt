@@ -55,8 +55,17 @@ fun SignUpScreen(
         }
     }
 
+    val isEmailValid = isValidEmail(email)
+    val isNameValid = name.isNotBlank()
+    val isPasswordValid = password.length >= 4
     val passwordsMatch = password == confirmPassword
-    val canRegister = email.isNotBlank() && password.length >= 4 && confirmPassword.isNotBlank() && passwordsMatch
+    val canRegister =
+        email.isNotBlank() &&
+                isEmailValid &&
+                isNameValid &&
+                isPasswordValid &&
+                confirmPassword.isNotBlank() &&
+                passwordsMatch
 
     val configuration = LocalConfiguration.current
     val screenHeight = configuration.screenHeightDp.dp
@@ -121,6 +130,7 @@ fun SignUpScreen(
                     onValueChange = { email = it },
                     label = { Text("Email") },
                     singleLine = true,
+                    isError = email.isNotEmpty() && !isEmailValid,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Next
@@ -129,14 +139,30 @@ fun SignUpScreen(
                     shape = RoundedCornerShape(16.dp)
                 )
 
-                Spacer(modifier = Modifier.height(screenHeight * 0.02f))
+                if (email.isNotEmpty() && !isEmailValid) {
+                    Text(
+                        text = "Введите корректный email",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp, top = 4.dp)
+                    )
+                }
 
+
+                Spacer(modifier = Modifier.height(screenHeight * 0.02f))
+                var nameTouched by rememberSaveable { mutableStateOf(false) }
                 labelText("Введите имя")
                 OutlinedTextField(
                     value = name,
-                    onValueChange = { name = it },
+                    onValueChange = {
+                        name = it
+                        nameTouched = true
+                                    },
                     label = { Text("Имя") },
                     singleLine = true,
+                    isError = nameTouched && name.isBlank(),
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Text,
                         imeAction = ImeAction.Next
@@ -144,6 +170,19 @@ fun SignUpScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 )
+
+                if (nameTouched && name.isBlank()) {
+                    Text(
+                        text = "Имя не может быть пустым",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp, top = 4.dp)
+                    )
+                }
+
+
 
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
@@ -153,7 +192,11 @@ fun SignUpScreen(
                     onValueChange = { password = it },
                     label = { Text("Пароль") },
                     singleLine = true,
-                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    isError = password.isNotEmpty() && !isPasswordValid,
+                    visualTransformation = if (passwordVisible)
+                        VisualTransformation.None
+                    else
+                        PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
@@ -171,16 +214,29 @@ fun SignUpScreen(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
                 )
-
+                if (password.isNotEmpty() && !isPasswordValid) {
+                    Text(
+                        text = "Пароль должен быть не менее 6 символов и содержать заглавную букву",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp, top = 4.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.height(screenHeight * 0.02f))
 
                 labelText("Повторите пароль")
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-                    label = { Text("Пароль") },
+                    label = { Text("Повторите пароль") },
                     singleLine = true,
-                    visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    isError = confirmPassword.isNotEmpty() && !passwordsMatch,
+                    visualTransformation = if (confirmPasswordVisible)
+                        VisualTransformation.None
+                    else
+                        PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                             Icon(
@@ -199,11 +255,14 @@ fun SignUpScreen(
                     shape = RoundedCornerShape(16.dp)
                 )
 
-                if (!passwordsMatch && confirmPassword.isNotEmpty()) {
+                if (confirmPassword.isNotEmpty() && !passwordsMatch) {
                     Text(
                         text = "Пароли не совпадают",
                         color = Color.Red,
-                        modifier = Modifier.padding(top = 4.dp)
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 8.dp, top = 4.dp)
                     )
                 }
 
@@ -267,4 +326,10 @@ fun SignUpScreen(
             }
         }
     }
+}
+
+fun isValidEmail(email: String): Boolean {
+    return android.util.Patterns.EMAIL_ADDRESS
+        .matcher(email)
+        .matches()
 }

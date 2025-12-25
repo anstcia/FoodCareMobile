@@ -13,8 +13,7 @@ class ProductRepositoryImpl @Inject constructor(
     private val userPreferences: UserPreferences
 ) : ProductRepository {
     override suspend fun getUserProducts(): List<UserProduct> = try {
-        val userId =  userPreferences.userId.firstOrNull()
-        //?: throw IllegalStateException("User ID not found. Please login first.")
+        val userId =  userPreferences.userId.firstOrNull() ?: throw IllegalStateException("User ID not found. Please login first.")
         api.getAllProductsOfUser(userId).map { it.toDomain() }
     } catch (e: IllegalStateException) {
         // Пробрасываем ошибку авторизации как есть

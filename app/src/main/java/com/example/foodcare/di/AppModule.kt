@@ -3,7 +3,9 @@ package com.example.foodcare.di
 import android.content.Context
 import com.example.foodcare.api.ApiService
 import com.example.foodcare.data.repository.ProductRepositoryImpl
+import com.example.foodcare.data.repository.UserRepositoryImpl
 import com.example.foodcare.domain.repository.ProductRepository
+import com.example.foodcare.domain.repository.UserRepository
 import com.example.foodcare.presentation.viewmodel.UserPreferences
 import dagger.Module
 import dagger.Provides
@@ -29,6 +31,13 @@ object AppModule {
         userPreferences: UserPreferences
     ): ProductRepository {
         return ProductRepositoryImpl(apiService, userPreferences)
+    }
+    @Provides
+    @Singleton
+    fun provideUserRepository(
+        apiService: ApiService
+    ): UserRepository {
+        return UserRepositoryImpl(apiService)
     }
 }
 
